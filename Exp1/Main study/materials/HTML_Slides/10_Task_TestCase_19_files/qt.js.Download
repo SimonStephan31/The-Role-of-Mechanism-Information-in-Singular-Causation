@@ -1,0 +1,116 @@
+;(function($, window, document) {
+  var pluginName = "single_singlerow",
+    defaults = {};
+
+  function Plugin(element, options) {
+    this.element = element;
+    this.options = $.extend({}, defaults, options);
+    this._defaults = defaults;
+    this._name = pluginName;
+    this._properties = {};
+    this.windowWidth = $(window).width();
+    this.windowHeight = $(window).height();
+    this.init();
+  }
+
+  Plugin.prototype = {
+    init : function() {
+      this.fixImagesForIE8();
+
+      var qwrap = $(".fallback_selectbox", this.element);
+      if (qwrap.length != 1) {
+        return; // Don't do any js operation because the selectbox fallback is not used
+      }
+
+      var selectbox = $("select", this.element);
+      var initialValue = selectbox.val();
+      this.updateRadios(initialValue);
+
+      var self = this;
+      selectbox.bind("change", function(e) {
+        self.updateRadios(this.value);
+      });
+
+      var radios = $("input:radio", this.element);
+      radios.each(function() {
+        $(this).bind("change", function(e) {
+          self.updateSelectbox(this.value, selectbox);
+        });
+      });
+    },
+
+    updateRadios : function(selectedValue) {
+      var radios = $("input:radio", this.element);
+      radios.each(function() {
+        if (selectedValue === '0') {
+          $(this).prop('checked', false);
+        }
+        else if (this.value == selectedValue) {
+          $(this).prop('checked', true);
+        }
+      });
+    },
+
+    updateSelectbox : function(selectedValue, selectbox) {
+      selectbox.val(selectedValue);
+    },
+
+    fixImagesForIE8 : function() {
+      var ltIE9 = $(".lt-ie9").length;
+      var ltIE8 = $(".lt-ie8").length;
+      if (!ltIE9 || ltIE8) {
+        return;
+      }
+      $(window).on("resize", this, $.proxy(this.onWindowResize, this));
+      this.updateWidths();
+    },
+
+    updateWidths : function() {
+      var self = this;
+      var images = $("label.radio span.labeltext img", this.element);
+      $.each(images,  function(i, img) {
+        var parent = $(img).closest("label.radio");
+        var natural = self.getNatural(img);
+
+        if (natural.width > parent.width()) {
+          $(img).width("100%");
+        }
+        else {
+          $(img).width("");
+        }
+      });
+    },
+
+    getNatural : function (DOMelement) {
+      var img = new Image();
+      img.src = DOMelement.src;
+      return {width: img.width, height: img.height};
+    },
+
+    /**
+     * Filter window resize events
+     * (Since IE <= 8 will fire the window resize event everytime any layout change happens to the DOM
+     * and thus ends up in a loop or even hangs, we filter the resize events and pass through only real
+     * changes of the windows size)
+     */
+    onWindowResize : function() {
+      // Has either the windows width or the windows height changed?
+      if ($(window).width() !== this.windowWidth || $(window).height() !== this.windowHeight) {
+        // Yes, store the new values
+        this.windowWidth = $(window).width();
+        this.windowHeight = $(window).height();
+        // Trigger layout updates
+        this.updateWidths();
+      }
+    }
+  };
+
+  $.fn[pluginName] = function(options) {
+    return this.each(function() {
+      if (!$.data(this, "plugin_" + pluginName)) {
+        $.data(this, "plugin_" + pluginName, new Plugin(this, options));
+      }
+    });
+  };
+
+})(jQuery, window, document);

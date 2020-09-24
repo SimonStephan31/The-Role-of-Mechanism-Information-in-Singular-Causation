@@ -1,0 +1,222 @@
+;(function(jQuery){jQuery.event.special.dbltouch={setup:function(data,namespaces){var elem=this,$elem=jQuery(elem);$elem.bind('touchend.dblclick',jQuery.event.special.dbltouch.handler);},teardown:function(namespaces){var elem=this,$elem=jQuery(elem);$elem.unbind('touchend.dblclick');},handler:function(event){var elem=event.target,$elem=jQuery(elem),lastTouch=$elem.data('lastTouch')||0,now=new Date().getTime();var delta=now-lastTouch;if(delta>20&&delta<500){$elem.data('lastTouch',0);$elem.trigger('dblclick');}else
+$elem.data('lastTouch',now);}};})(jQuery);;(function($,window,document,undefined){if(!$('html').hasClass('autosubmit')){return;}
+window.EFS=window.EFS||{};var defaults={qualified_qt:['.supportAutoSubmit','.type-single-111','.type-single-112','.type-single-113','.type-single-131','.type-single-132','.type-matrix-311','.type-matrix-312','.type-matrix-340','.type-single-smiley','.type-single-stars','.type-single-singlerow','.type-single-hotspot','.type-matrix-ranking','.type-matrix-stars','.type-matrix-hotspot','.type-html-998'],submitFirst:false,additional_qualified_qt:[],custom_check_nodes:[],unique_class_regex:/nameq_(\d+)/gi};function AutosubmitFilledForm(options){this.options=options;}
+AutosubmitFilledForm.prototype={checkMap:[],check:function(options){this.options=$.extend(this.options,options);var map;if(map=this.checkAllQuestions()){this.bindChecks(map);return true;}
+return false;},getObjectSize:function(obj){var len=0,key;for(key in obj){if(obj.hasOwnProperty(key))len++;}
+return len;},bindChecks:function(map){var me=this;this.checkMap=map;$.each(this.checkMap,function(i,el){$.each(el.vars,function(varname){var eventName="change hotspot-change";if($("html").hasClass("lt-ie9")){if($(el.qt).hasClass("type-single-smiley")){eventName="click";}}
+var elem=$('[name="'+varname+'"]');if(eventName==="click"){var img=$(elem).closest("label").find("img");if(img.length===1){$(img).bind("click",function(evt){me.onElementChange(evt,elem);});}else{var lbl=$(elem).closest("label");$(lbl).bind("click",function(evt){me.onElementChange(evt,elem);});}}else{elem.bind(eventName,function(evt){me.onElementChange(evt,this);});}});var selectboxes=$('li.matrix-mobile-selectbox select',el.qt);if(selectboxes.length>0){$.each(selectboxes,function(i,selectbox){$(selectbox).bind("change",function(evt){me.onElementChange(evt,this);});});}});$(document).on('AutosubmitFilledFormChange',function(){if(me.isFilled()==true){$('form[name="f1"]').submit();}});if(this.options.submitFirst==true){$(document).trigger('AutosubmitFilledFormChange');}},onElementChange:function(e,element){var $rootElement=$(element).closest('.question');var rootClass=$rootElement.attr('class').match(this.options.unique_class_regex)[0];var varName=$(element).attr('name');if(typeof varName=="undefined"){varName=this.getVarnameForSelectboxFallback(element);}
+var hasCorrespondingTempVariable=false;if(varName.indexOf('temp_')===-1&&$rootElement.hasClass('type-single-singlerow')){$rootElement.find("select").each(function(i,el){if($(el).attr('name')==='temp_'+varName){hasCorrespondingTempVariable=true;}});}
+var isFilled=this.isElementFilled(element);if(isFilled){this.checkMap[rootClass].filled[varName]=1;if(varName.indexOf('temp_')===0){this.checkMap[rootClass].filled[varName.replace(/^temp_/g,'')]=1;}
+else if(hasCorrespondingTempVariable){this.checkMap[rootClass].filled['temp_'+varName]=1;}}else{delete this.checkMap[rootClass].filled[varName];if(varName.indexOf('temp_')===0){if(typeof this.checkMap[rootClass].filled[varName.replace(/^temp_/g,'')]!=='undefined'){delete this.checkMap[rootClass].filled[varName.replace(/^temp_/g,'')];}}
+else{if(typeof this.checkMap[rootClass].filled['temp_'+varName]!=='undefined'){delete this.checkMap[rootClass].filled['temp_'+varName];}}}
+$(document).trigger('AutosubmitFilledFormChange',{element:element});},isRadioFilled:function(element){return $(element).is(':checked')===true&&$(element).val()!="0";},isSelectFilled:function(element){return(parseInt($(element).val(),10)!=0&&parseInt($(":selected",element).val(),10)!=-77&&!isNaN($(":selected",element).val()))===true;},isElementFilled:function(element){if(this.isSelect(element)){return this.isSelectFilled(element);}else if(this.isRadio(element)){return this.isRadioFilled(element);}
+return false;},isRadio:function(element){return $(element).prop('tagName')=='INPUT'&&$(element).attr('type')=='radio';},isSelect:function(element){return $(element).prop('tagName')=='SELECT';},isFilled:function(){var filled=true;var me=this;$.each(this.checkMap,function(){if(me.getObjectSize(this.vars)!=me.getObjectSize(this.filled)){filled=false;return false;}
+return true;});return filled;},getQuestionMap:function(element){var map={qt:element,vars:{},filled:{}};var me=this;$(element).find('input,select').each(function(e){if($(this).attr("type")=="button"){return;}
+var name=$(this).attr('name');if(typeof name=="undefined"){name=me.getVarnameForSelectboxFallback(this);}
+var isFilled=me.isElementFilled(this);if(name!=undefined){if(isFilled){map.filled[name]=1;}
+if(me.isRadio(this)){map.vars[name]=(map.vars[name])?map.vars[name]+1:1;}else if(me.isSelect(this)){var options=$(this).find('option');if(options.length>0){var c=0;$.each(options,function(i,o){if(typeof $(o).attr("value")!=='undefined'){c++;}});map.vars[name]=c;}}else{if($(this).attr("type")==='hidden'){return map;}
+map=false;return false;}}});return map;},getVarnameForSelectboxFallback:function(element){if($(element).prop('tagName')=='SELECT'){var radios=$(element).closest('ul').find('input[type="radio"]');if(radios.length>0){return $(radios[0]).attr('name');}}
+return'';},checkAllQuestions:function(){var qualifiedMap={};var qualifiedString=$.merge(this.options.qualified_qt,this.options.additional_qualified_qt).join(',');var me=this;$.each($('.question'),function(i,element){if($(element).filter(qualifiedString).length<1){return false;}
+var map=me.getQuestionMap(element);var uniqueIdend=$(this).attr('class').match(me.options.unique_class_regex);if(map!==false){qualifiedMap[uniqueIdend]=map;}else{qualifiedMap={};return false;}});if(this.getObjectSize(qualifiedMap)==$('.question').length){return qualifiedMap;}
+return false;}};EFS.testAutosubmitFilledForm=new AutosubmitFilledForm(defaults);$(document).on('allQuestionTypesLoaded',function(){EFS.testAutosubmitFilledForm.check();});})(jQuery,window,document);var state=0,error_text="";EFS.global.plausiCheck=(function(){var ctx=$("form[name='f1']");function hasType(el){return($(el,ctx).length&&!$(el,ctx)[0].type);}
+function getElementByIndex(el,i){if(typeof i==="undefined"){var r=$("*[name='"+el+"']",ctx);if(r.length>0){return r[0];}
+return r;}
+return $("*[name='"+el+"']",ctx)[i];}
+function getLength(el){return $(el,ctx).length;}
+function checkchanged(element){if(hasType(element)){for(i=0;i<getLength(element);i++){if($(element,ctx)[i].checked){return true;}}}else{if(getElementByIndex(element).type=="text"){if(getElementByIndex(element).value.length!=0){return true;}else{return false;}}else{if(getElementByIndex(element).selectedIndex!=0){return true;}else{return false;}}}}
+function checkselected(field,option){var arr=option.split('|');for(i=0;i<arr.length;i++){if(hasType(field)){for(j=0;j<getLength(el);j++){if(getElementByIndex(field,j).checked&&getElementByIndex(field,j).value==arr[i]){return true;}}}else{if(getElementByIndex(field).selectedIndex==arr[i]){return true;}}}
+return false;}
+function checklogic(check,name,field,option,addition,hardsoft){if(!checkselected(field,option)&&(checkchanged(check)||(addition&&checkchanged(addition)))){return false;}else{return true;}}
+function checkcross(check,field,option,name,hardsoft){if(!checkvalue(field,'==',option)&&checkchanged(check)){return false;}else{return true;}}
+function checkmisc(check,name,field,option,hardsoft){if(!checkselected(field,option)&&checkchanged(check)){return false;}else{return true;}}
+function checkrange(check,from,until){if(!checkobject(check)){return false;}
+if(!isNaN(Number(getvalue(check)))&&(Number(getvalue(check))>=Number(from)&&Number(getvalue(check))<=Number(until))){return true;}else{return false;}}
+function checkformat(check,format){if(!checkobject(check)){return false;}
+var string=getstrvalue(check);var suche=eval("/^["+format+"]*$/");if(!suche.test(string)){return true;}else{return false;}}
+function matches_regex(check,format){if(!checkobject(check)){return false;}
+var string=getstrvalue(check);var suche=eval(make_format(format));if(suche.test(string)){return true;}else{return false;}}
+function not_matches(check,format){if(!checkobject(check)){return false;}
+var string=getstrvalue(check);var suche=eval(make_format(format));if(!suche.test(string)){return true;}else{return false;}}
+function not_only_numbers(check){if(!checkobject(check)){return false;}
+regx=/^\s*[0-9]+\s*[.,]*\s*[0-9]*\s*$/;var value=getstrvalue(check);if(value.search(regx)==-1){return true;}else{return false;}}
+function checkemail(check,name,hardsoft){if(!checkobject(check)){return false;}
+var regx=/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;var value=getstrvalue(check);if(regx.test(value)){return false;}else{return true;}}
+function checknumbox(check,name,dir,num,hardsoft){if(getElementByIndex(check).type=="checkbox"){var i=0;for(j=0;j<getLength(check);j++){if(getElementByIndex(check,j).checked){i++;}}
+if(!eval('i '+dir+' num')){return false;}else{return true;}}else{alert('wrong field type');}}
+function make_format(format){var regx=/^\/.*\/i?$/;if(!regx.test(format)){format='/'+format+'/';}
+return format;}
+function testByCondition(left,right,ops,esc){if(typeof esc!=="undefined"){return eval(left+" "+ops+"  '"+right+"'");}
+return eval(left+" "+ops+"  "+right);}
+function checkvalue(field,condition,option){var arr=option.split('|');for(i=0;i<arr.length;i++){if(getLength(field)&&!getElementByIndex(field).type){for(j=0;j<getLength(field);j++){if(isNaN(arr[i])||arr[i]==""){if(getElementByIndex(field,j).checked&&testByCondition(getElementByIndex(field,j).value,arr[i],condition,true)){return true;}}else{if(getElementByIndex(field,j).checked&&testByCondition(getElementByIndex(field,j).value,arr[i],condition)){return true;}}}}else if(getElementByIndex(field).type=="text"||getElementByIndex(field).type=="hidden"){if(condition.indexOf('regx')!=-1){if(condition=="onlyregx"){var string=getElementByIndex(field,j).value;var suche=eval("/^"+arr[i]+"$/;");if(!suche.test(string)){return true;}}else if(condition=="noregx"){var string=getElementByIndex(field,0).value;var suche=eval("/"+arr[i]+"/;");if(suche.test(string)){return true;}}else if(condition=="regx"){var string=getElementByIndex(field).value;var suche=eval("/"+arr[i]+"/;");if(!suche.test(string)){return true;}}}else{if(isNaN(arr[i])||arr[i]==""){if(testByCondition(getElementByIndex(field).value,arr[i],condition,true)){return true;}}else{if(testByCondition(getElementByIndex(field).value,arr[i],condition)){return true;}}}}else{if(testByCondition(getElementByIndex(field,j).selectedIndex,arr[i],condition)){return true;}}}
+return false;}
+function textfocus(fe){var firstnothidden=0;if(fe!=1){var fe=0;}
+var maxformlength=document.forms.f1.length;if(maxformlength==0){return;}
+while((document.forms.f1[firstnothidden])&&(document.forms.f1[firstnothidden].type=="hidden")&&(firstnothidden<maxformlength)){if((document.forms.f1[firstnothidden]!="undefined")){firstnothidden++;}
+if((document.forms.f1[firstnothidden]=="undefined")){break;}}
+if((document.forms.f1[firstnothidden]!="undefined")&&(fe!=1)){if((document.forms.f1[firstnothidden])&&((document.forms.f1[firstnothidden].type=="text")||(document.forms.f1[firstnothidden].type=="textarea"))){document.forms.f1[firstnothidden].focus();}}}
+function checkobject(check){var obj2=getElementByIndex(check);if(typeof obj2=="undefined"){return false;}
+return true;}
+function ishidden(field){if(field=='v_hidden'){return 1;}else{return 0;}}
+function getvalue(field){if(field=='v_hidden'){return 0;}
+if(!checkobject(field)){return false;}
+var value="";var obj=eval("document.forms.f1."+field);if(!obj){return 0;}
+var istext=false;if(obj.type=="text"||obj.type=="textarea"||obj.type=="hidden"||obj.type=="date"||obj.type=="email"){value=obj.value;istext=true;}
+else if(obj.length>0&&!obj.type){for(j=0;j<obj.length;j++){if(obj[j].checked){value=getElementByIndex(field,j).value;break;}}}
+else if(obj.type=="checkbox"||obj.type=="radio"){if(obj.checked){value=obj.value;}else{value=0;}}
+else{if(document.forms['f1'].elements[field].selectedIndex==-1){value=0;}else{value=0;var selBox=getElementByIndex(field);if(selBox!==undefined&&selBox.options!==undefined&&selBox.selectedIndex!==undefined){if(typeof $(selBox.options[selBox.selectedIndex]).attr("value")=="undefined"){value=0;}
+else{value=selBox.options[selBox.selectedIndex].value;}}}}
+var regx=/^\s*[\'|\\\"]?([ 0-9,]*)[\'|\\\"]?\s*$/i;if(regx.test(value)&&value!==0){value=value.replace(/,/,".");}
+if(value===''){return'';}else if(isNaN(value)){return value;}else{return Number(value);}}
+function getstrvalue(field){if(field=='v_hidden'){return 0;}
+if(!checkobject(field)){return false;}
+var value="";var obj=getElementByIndex(field);if(!obj){return 0;}
+if(obj.type=="text"||obj.type=="textarea"||obj.type=="hidden"){value=obj.value;}
+else if(obj.length>0&&!obj.type){for(j=0;j<obj.length;j++){if(obj[j].checked){value=getElementByIndex(field,j).value;break;}else if(obj[j].type=="text"||obj[j].type=="textarea"||obj[j].type=="hidden"){value=obj[j].value;break;}}}
+else if(obj.type=="checkbox"){if(obj.checked){value=obj.value;}else{value=0;}}else{value=getElementByIndex(field,getElementByIndex(field).selectedIndex).value;}
+return value+'';}
+function checkrange_old(check,from,until,name,hardsoft){var v=getElementByIndex(check).value;if(isNaN(v)||(Number(from)>v||Number(until)<v)){if(hardsoft==0){state=1;}
+error_text+=name+"<br>\n";}}
+function checkemail_old(check,name,hardsoft){var regx=/^([a-z0-9\._-]*)@([a-z0-9\.-]{2,66})\.([a-z]{2,6})$/i;if(getElementByIndex(check,j).value.search(regx)==-1){if(hardsoft==0){state=1;}
+error_text+=name+"<br>\n";}}
+function checkcross_old(check,field,option,name,hardsoft){if(!checkvalue(field,'==',option)&&checkchanged(check)){if(hardsoft==0){state=1;}
+error_text+=name+"<br>\n";}}
+function checkformat_old(check,format,name,hardsoft){var string=getElementByIndex(check).value;var suche=eval("/^["+format+"]*$/;");if(!suche.test(string)||!string){if(hardsoft==0){state=1;}
+error_text+=name+"<br>\n";}}
+function pow(base,exp){return Math.pow(base,exp);}
+function sqr(value){return value*value;}
+function sqrt(value){return value>0?Math.sqrt(value):0;}
+function round(value){return Math.round(value);}
+function floor(value){return Math.floor(value);}
+function ceil(value){return Math.ceil(value);}
+function truncate(value){return value<0?ceil(value):floor(value);}
+function setval(value){if(value<1){return 0;}
+return 1;}
+function abs(value){return Math.abs(value);}
+function pos(value){return(value<0?0:value);}
+function neg(value){return(value>0?0:value);}
+function sgn(value){return(value>0?1:(value<0?-1:0));}
+function min(value1,value2){return Math.min(value1,value2);}
+function max(value1,value2){return Math.max(value1,value2);}
+function isodd(value){return truncate(value)%2!=0;}
+function iseven(value){return(truncate(value)%2==0);}
+function ispositive(value){return(value>0);}
+function isnegative(value){return(value<0);}
+function iszero(value){return(value==0);}
+function issamestring(value1,value2){return(trim(lowercase(value1))==trim(lowercase(value2)));}
+function trim(value){return new String(value).replace(/(^\s+|\s+$)/g,'');}
+function lowercase(value){return new String(value).toLowerCase();}
+function uppercase(value){return new String(value).toUpperCase();}
+function netstringlength(value){return new String(value).replace(/\s+/g,'').length;}
+function stringlength(value){return new String(value).length;}
+function isblank(value){return netstringlength(value)==0;}
+function isnumber(value){return new String(value).match(/^-?\d+(\.\d+)?$/g);}
+function isint(value){return new String(value).match(/^-?\d+$/g);}
+function isalpha(value){return new String(value).match(/^[a-z]+$/ig);}
+function isalphanumeric(value){return new String(value).match(/^[a-z0-9]+$/ig);}
+function isalpha_de(value){return new String(value).match(/^[a-zA-ZÄÖÜäöüß]+$/ig);}
+function isalphanumeric_de(value){return new String(value).match(/^[a-zA-Z0-9ÄÖÜäöüß]+$/ig);}
+function isvaliddate(value){return new String(value).match(/^((((((0)?[1-9])|(1\d)|(2[0-8]))(\.|\/|-\s*)(((0)?[1-9])|(1[0-2])))|((31(\.|\/|-\s*)(((0)?[13578])|(1[02])))|((29|30)(\.|\/|-\s*)(((0)?[1,3-9])|(1[0-2])))))(\.|\/|-\s*)((((19|20))?[0-9][0-9]))|(29(\.|\/|-\s*)(0)?2(\.|\/|-\s*)((19|20))?(([02468][048])|([13579][26]))))$/g);}
+function ismissing(value){return(value=='-77'||value=='-66'||value==-77||value==-66||value===0||value==='0'||value==''||value===null);}
+function isinrange(value,min,max){if(min>max){return value<=min&&value>=max;}else{return value>=min&&value<=max;}}
+function accessval(val){return getvalue(val);}
+function getmonthdiff(year,month){year=Number(year);month=Number(month);return(year-new Date().getFullYear())*12+(month-new Date().getMonth());}
+function outofrange(check,from,until){if(!checkobject(check))return false;if(isNaN(Number(getvalue(check)))||(Number(getvalue(check))<Number(from)||Number(getvalue(check))>Number(until)))
+return true;else
+return false;}
+function checkkombination(questname,oper,value)
+{if(!ccheck[questname])
+return 0;num_checked=0;for(i=0;i<ccheck[questname].length;i++)
+{if(getvalue(ccheck[questname][i])==1)
+num_checked++;}
+eval("result=("+num_checked+oper+value+");");return!result;}
+function checkkombination_range(questname,min,max)
+{num_checked=0;for(i=0;i<ccheck[questname].length;i++)
+{if(getvalue(ccheck[questname][i])==1)
+num_checked++;}
+result=(num_checked>=min&&num_checked<=max);return!result;}
+function numberformat(value,precision)
+{value=Number(value);return Number(value.toFixed(precision));}
+if(parseInt(state,10)===1){EFS.global.ignoreButtonState=1;}
+return{checkkombination:checkkombination,checkkombination_range:checkkombination_range,numberformat:numberformat,outofrange:outofrange,abs:abs,accessval:accessval,ceil:ceil,checkcross:checkcross,checkchanged:checkchanged,checkselected:checkselected,checkcross_old:checkcross_old,checkemail:checkemail,checkemail_old:checkemail_old,checkformat:checkformat,checkformat_old:checkformat_old,checklogic:checklogic,checkmisc:checkmisc,checknumbox:checknumbox,checkobject:checkobject,checkrange:checkrange,checkrange_old:checkrange_old,checkvalue:checkvalue,floor:floor,getmonthdiff:getmonthdiff,getstrvalue:getstrvalue,getvalue:getvalue,isalpha:isalpha,isalpha_de:isalpha_de,isalphanumeric:isalphanumeric,isalphanumeric_de:isalphanumeric_de,isblank:isblank,iseven:iseven,ishidden:ishidden,isinrange:isinrange,isint:isint,ismissing:ismissing,isnegative:isnegative,isnumber:isnumber,isodd:isodd,ispositive:ispositive,issamestring:issamestring,isvaliddate:isvaliddate,iszero:iszero,lowercase:lowercase,make_format:make_format,matches_regex:matches_regex,max:max,min:min,neg:neg,netstringlength:netstringlength,not_matches:not_matches,not_only_numbers:not_only_numbers,pos:pos,pow:pow,round:round,setval:setval,sgn:sgn,sqr:sqr,sqrt:sqrt,stringlength:stringlength,trim:trim,truncate:truncate,uppercase:uppercase}});function outofrange(check,from,until){return(new EFS.global.plausiCheck).outofrange(check,from,until);}
+function checkkombination(questname,oper,value){return(new EFS.global.plausiCheck).checkkombination(questname,oper,value);}
+function checkkombination_range(questname,min,max){return(new EFS.global.plausiCheck).checkkombination_range(questname,min,max);}
+function numberformat(value,precision){return(new EFS.global.plausiCheck).numberformat(value,precision);}
+function checkchanged(element){return(new EFS.global.plausiCheck).checkchanged(element);}
+function checkselected(field,option){return(new EFS.global.plausiCheck).checkselected(field,option);}
+function checklogic(check,name,field,option,addition,hardsoft){return(new EFS.global.plausiCheck).checklogic(check,name,field,option,addition,hardsoft);}
+function checkcross(check,field,option,name,hardsoft){return(new EFS.global.plausiCheck).checkcross(check,field,option,name,hardsoft);}
+function checkmisc(check,name,field,option,hardsoft){return(new EFS.global.plausiCheck).checkmisc(check,name,field,option,hardsoft);}
+function checkrange(check,from,until){return(new EFS.global.plausiCheck).checkrange(check,from,until);}
+function checkformat(check,format){return(new EFS.global.plausiCheck).checkformat(check,format);}
+function checkemail(check,name,hardsoft){return(new EFS.global.plausiCheck).checkemail(check,name,hardsoft);}
+function checknumbox(check,name,dir,num,hardsoft){return(new EFS.global.plausiCheck).checknumbox(check,name,dir,num,hardsoft);}
+function checkvalue(field,condition,option){return(new EFS.global.plausiCheck).checkvalue(field,condition,option);}
+function checkobject(check){return(new EFS.global.plausiCheck).checkobject(check);}
+function ishidden(field){return(new EFS.global.plausiCheck).ishidden(field);}
+function getvalue(field){return(new EFS.global.plausiCheck).getvalue(field);}
+function getstrvalue(field){return(new EFS.global.plausiCheck).getstrvalue(field);}
+function checkrange_old(check,from,until,name,hardsoft){return(new EFS.global.plausiCheck).checkrange_old(check,from,until,name,hardsoft);}
+function checkemail_old(check,name,hardsoft){return(new EFS.global.plausiCheck).checkemail_old(check,name,hardsoft);}
+function checkcross_old(check,field,option,name,hardsoft){return(new EFS.global.plausiCheck).checkcross_old(check,field,option,name,hardsoft);}
+function checkformat_old(check,format,name,hardsoft){return(new EFS.global.plausiCheck).checkformat_old(check,format,name,hardsoft);}
+function matches_regex(check,format){return(new EFS.global.plausiCheck).matches_regex(check,format);}
+function not_matches(check,format){return(new EFS.global.plausiCheck).not_matches(check,format);}
+function not_only_numbers(check){return(new EFS.global.plausiCheck).not_only_numbers(check);}
+function make_format(format){return(new EFS.global.plausiCheck).make_format(format);}
+function textfocus(fe){return(new EFS.global.plausiCheck).textfocus(fe);}
+function checkobject(check){return(new EFS.global.plausiCheck).checkobject(check);}
+function ishidden(field){return(new EFS.global.plausiCheck).ishidden(field);}
+function pow(base,exp){return(new EFS.global.plausiCheck).pow(base,exp);}
+function sqr(value){return(new EFS.global.plausiCheck).sqr(value);}
+function sqrt(value){return(new EFS.global.plausiCheck).sqrt(value);}
+function round(value){return(new EFS.global.plausiCheck).round(value);}
+function floor(value){return(new EFS.global.plausiCheck).floor(value);}
+function ceil(value){return(new EFS.global.plausiCheck).ceil(value);}
+function truncate(value){return(new EFS.global.plausiCheck).truncate(value);}
+function setval(value){return(new EFS.global.plausiCheck).setval(value);}
+function abs(value){return(new EFS.global.plausiCheck).abs(value);}
+function neg(value){return(new EFS.global.plausiCheck).neg(value);}
+function pos(value){return(new EFS.global.plausiCheck).pos(value);}
+function sgn(value){return(new EFS.global.plausiCheck).sgn(value);}
+function min(value){return(new EFS.global.plausiCheck).min(value);}
+function max(value){return(new EFS.global.plausiCheck).max(value);}
+function isodd(value){return(new EFS.global.plausiCheck).isodd(value);}
+function iseven(value){return(new EFS.global.plausiCheck).iseven(value);}
+function ispositive(value){return(new EFS.global.plausiCheck).ispositive(value);}
+function isnegative(value){return(new EFS.global.plausiCheck).isnegative(value);}
+function iszero(value){return(new EFS.global.plausiCheck).iszero(value);}
+function issamestring(value){return(new EFS.global.plausiCheck).issamestring(value);}
+function trim(value){return(new EFS.global.plausiCheck).trim(value);}
+function lowercase(value){return(new EFS.global.plausiCheck).lowercase(value);}
+function uppercase(value){return(new EFS.global.plausiCheck).uppercase(value);}
+function netstringlength(value){return(new EFS.global.plausiCheck).netstringlength(value);}
+function stringlength(value){return(new EFS.global.plausiCheck).stringlength(value);}
+function isblank(value){return(new EFS.global.plausiCheck).isblank(value);}
+function isnumber(value){return(new EFS.global.plausiCheck).isnumber(value);}
+function isint(value){return(new EFS.global.plausiCheck).isint(value);}
+function isalpha(value){return(new EFS.global.plausiCheck).isalpha(value);}
+function isalphanumeric(value){return(new EFS.global.plausiCheck).isalphanumeric(value);}
+function isalpha_de(value){return(new EFS.global.plausiCheck).isalpha_de(value);}
+function isalphanumeric_de(value){return(new EFS.global.plausiCheck).isalphanumeric_de(value);}
+function isvaliddate(value){return(new EFS.global.plausiCheck).isvaliddate(value);}
+function ismissing(value){return(new EFS.global.plausiCheck).ismissing(value);}
+function isinrange(value,min,max){return(new EFS.global.plausiCheck).isinrange(value,min,max);}
+function accessval(value){return(new EFS.global.plausiCheck).accessval(value);}
+function getmonthdiff(year,month){return(new EFS.global.plausiCheck).getmonthdiff(year,month);}
+function isint(value){return(new EFS.global.plausiCheck).isint(value);}
+var errContainer=[],targetContainer;function err_win(keep_error_text)
+{function scrollUp(){$("html, body").animate({scrollTop:0},600);}
+var msg=error_text,btnText=EFS.global.i18n.btnIgnore||"Ignore",errCaption=EFS.global.i18n.msgPlausiHeader||"Note: One or more questions are important for the rest of the questionnaire.";var ignoreButton='<button align="right" type="submit" onclick="if(document.forms[\'f1\'].elements[\'__backb\'] && document.forms[\'f1\'].elements[\'__backb\'].value==1)document.forms[0].action+=\'&back=1\';if (typeof document.forms[\'f1\'].elements[\'__no_pc\'] != \'undefined\') document.forms[\'f1\'].elements[\'__no_pc\'].value=1;document.forms[0].submit();" alt="'+btnText+'">'+btnText+'</button>';if(parseInt(state,10)===1){EFS.global.ignoreButtonState=1;}
+if(msg.length>0)
+{setTimeout(function(){var $buttons=$('#os, #bb');if($buttons.length>0&&$($buttons[0]).attr("disabled")){var id=null;function removeDisabledState(){if(typeof $($buttons[0]).attr("disabled")==="undefined"){clearInterval(id);}else{$buttons.removeAttr("disabled");}}
+id=setInterval(removeDisabledState,50);}},50);errContainer.push('<div class="qq_main message message-block message-error">');errContainer.push('<h2 class="qq_head qq_head_plausi">'+errCaption+'</h2>');errContainer.push('<ul class="qq_list qq_list_plausi">');var messages=error_text.split("<br>");for(var i=0;i<messages.length;i++){if(messages[i].length>0){errContainer.push('<li class="qq qq_plausi">');errContainer.push(messages[i]);errContainer.push('</li>');}}
+if(parseInt(EFS.global.ignoreButtonState,10)==0){errContainer.push('<li>');errContainer.push(ignoreButton);errContainer.push('</li>');}
+errContainer.push('</ul>');errContainer.push('</div>');targetContainer=$(".message-error");if(targetContainer.length==0){targetContainer=$(".question:first");if(targetContainer.closest(".row-fluid.twocolumn").length==1){targetContainer=targetContainer.closest(".row-fluid.twocolumn");errContainer.unshift('<div class="row-fluid twocolumn">');errContainer.unshift('<span class="span-d12">');errContainer.push('</span>');errContainer.push('</div>');}
+$(errContainer.join("")).insertBefore(targetContainer);}else{$(targetContainer).replaceWith(errContainer.join(""));}
+error_text="";errContainer=[];scrollUp();return false;}
+else
+{return true;}};(function($,window){var $html=$('html');var lastWidth=0;if($html.hasClass('no-mobile')){return;}
+$(window).on('resize',function(){var windowWidth=$(window).width();if(windowWidth===lastWidth){return;}
+var hasMobileClass=$html.hasClass('mobile');if(hasMobileClass&&windowWidth>=768){$html.removeClass('mobile');}
+else if(!hasMobileClass&&windowWidth<768){$html.addClass('mobile');}
+lastWidth=windowWidth;});})(jQuery,window);
