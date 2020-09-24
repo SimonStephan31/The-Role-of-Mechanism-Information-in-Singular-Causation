@@ -1,0 +1,501 @@
+sID	Target	Observation	Value	Attention_Confirmation	Age	Sex (2 = female)	Technical_issues	Duration (sek)
+1	east	1_1p_0_1	11	1	46	2	-99	2424
+1	east	1_justification_30_1	NO message was received at the station for the Western Castle, therefore no signal had been sent to the Palace. It is not possible for the Western Castle emergency system to have triggered the Palace alarm on this day.  The Eastern Castle did send a carrier pigeon and it's station did send a pony rider. Given that the Palace alarm is triggered, the signal must have come from the Eastern Castle.	1	46	2	-99	2424
+1	east	1_u_0_1	11	1	46	2	-99	2424
+1	east	1_justification_31_1	No message was received at the station for the Western Castle, therefore no signal was sent to the Palace. It is unknown what happened at the station for the Eastern Castle, but given that the Eastern Castle sent a carrier pigeon and the Palace alarm has been triggered and taking into account that it could not have been triggered from the Western Castle, I am certain that the Eastern Castle triggered this alarm.	1	46	2	-99	2424
+1	east	1_1t_u_1	9	1	46	2	-99	2424
+1	east	1_justification_32_1	It is unknown whether the station for the Western Castle received a pigeon or sent a signal wither by telegraph or pony, so there is a possibility that the alarm could have been triggered by the Western Castle emergency system.   A signal was received by pigeon and telegraphed on from the station for the Eastern castle, so it is fairly likely, but not 100% that the Eastern Castle emergency system triggered the alarm.	1	46	2	-99	2424
+1	east	1_1t_1p_1	9	1	46	2	-99	2424
+1	east	1_justification_33_1	It would depend on the time of day that the carrier pigeons were sent out as to who first triggered the alarm in this instance, though given that the pony riders are much slower than the telegraph system, I would expect that the alarm was triggered by the Eastern Castle emergency system.	1	46	2	-99	2424
+1	east	1_1p_1p_1	6	1	46	2	-99	2424
+1	east	1_justification_37_1	Both castles sent carrier pigeons and both stations sent ponies to the Palace. Either castle could have triggered the alarm.	1	46	2	-99	2424
+1	east	1_u_1t_1	5	1	46	2	-99	2424
+1	east	1_justification_40_1	It is certain that the Western Castle sent both a pigeon and a telegraph from it's station. It is certain that the Eastern Castle sent a pigeon and possible that a telegraph or pony was sent from it's station. I am leaning towards the Western Castle, but there is still a high probability that the Eastern Castle could have triggered the Palace alarm on this day.	1	46	2	-99	2424
+1	east	u_1p_1t_u	3	1	46	2	-99	2424
+1	east	justification_47	It is fairly safe to assume that both castles sent carrier pigeons, even though the information is unknown, because both stations sent a signal.  The Eastern Castle station sent the slower pony rider, so it is fairly safe to assume that the telegraph sent from the Western Castle station would arrive first, depending of course on the timing of the carrier pigeon, hence some possibility the signal from the Eastern Castle arriving first.	1	46	2	-99	2424
+1	east	u_0_1p_u	1	1	46	2	-99	2424
+1	east	justification_48	No message was received at the station for the Eastern Castle, therefore no signal could be sent to the Palace. It is not possible that the Palace alarm was triggered by the Eastern Castle emergency system on this day.	1	46	2	-99	2424
+1	east	u_0_1t_u	1	1	46	2	-99	2424
+1	east	justification_49	No message was received at the station for the Eastern Castle, and therefore no signal sent to the palace. The alarm could not have been triggered by the Eastern Castle emergency system.	1	46	2	-99	2424
+1	east	u_0_u_u	1	1	46	2	-99	2424
+1	east	justification_56	No message was received at the station for the Eastern Castle, therefore no signal was sent to the Palace. It is not possible for the Eastern Castle emergency system to have triggered the Palace alarm on this day.	1	46	2	-99	2424
+2	west	1_1t_u_1	6	1	58	2	no	2685
+2	west	1_justification_4_1	The western castle sent a telegraph but we do not know if the eastern castle sent one after receipt of the pigeon so they could have been the same of faster.	1	58	2	no	2685
+2	west	1_1p_u_1	4	1	58	2	no	2685
+2	west	1_justification_6_1	The western transmitter sent a pony but we do not know what the eastern transmitter sent so they may have sent a telegraph which would be faster than the western castle.	1	58	2	no	2685
+2	west	1_1p_1t_1	1	1	58	2	no	2685
+2	west	1_justification_11_1	The pigeon and telegraph was used by the eastern castle and would be quicker than the pony used by the western castle therefore the eastern castle would raise the alarm first.	1	58	2	no	2685
+2	west	u_1t_1p_u	10	1	58	2	no	2685
+2	west	justification_18	Both castle must have sent pigeons to activate the transmitter stations. The western station would have been faster than the pony.  it does depend when it was sent and how long it took the pony to arrive.	1	58	2	no	2685
+2	west	u_0_1p_u	1	1	58	2	no	2685
+2	west	justification_20	The alarm was raised in the castle by the eastern castle who successfully sent a pony from the transmitter. The western transmitter did not send anything successfully.	1	58	2	no	2685
+2	west	u_0_1t_u	1	1	58	2	no	2685
+2	west	justification_21	The telegraph was sent from the transmitter used by the eastern castle. The western transmitter did not successfully send notification in any way.	1	58	2	no	2685
+2	west	u_u_u_u	6	1	58	2	no	2685
+2	west	justification_22	We don't know what happened at any of the two castles other than the alarm was successfully raised.	1	58	2	no	2685
+2	west	u_u_1t_u	6	1	58	2	no	2685
+2	west	justification_23	We do not know what happened that day at the western castle so they could have raised the alarm in the same way as the eastern castle via transmitter.	1	58	2	no	2685
+2	west	u_u_0_u	11	1	58	2	no	2685
+2	west	justification_25	The alarm was set off and we do not know what the western castle and transmitter did that day but the eastern the transmitter did not successfully send anything.	1	58	2	no	2685
+2	west	u_1t_u_u	6	1	58	2	no	2685
+2	west	justification_26	We don't know what happened at the eastern castle so they may have sent a transmitter as fast as the western castle	1	58	2	no	2685
+3	east	1_1p_u_1	10	1	34	2	-99	919
+3	east	1_justification_34_1	because I have more in formation from the east	1	34	2	-99	919
+3	east	1_u_u_1	6	1	34	2	-99	919
+3	east	1_justification_35_1	because both interm stations give little information	1	34	2	-99	919
+3	east	1_u_1p_1	3	1	34	2	-99	919
+3	east	1_justification_38_1	because information was coming from the east	1	34	2	-99	919
+3	east	1_u_1t_1	2	1	34	2	-99	919
+3	east	1_justification_40_1	because information was coming from the west	1	34	2	-99	919
+3	east	1_0_1t_1	4	1	34	2	-99	919
+3	east	1_justification_42_1	because a telegram was sent from the west	1	34	2	-99	919
+3	east	u_1t_1p_u	6	1	34	2	-99	919
+3	east	justification_46	because either have sent out a message and you dont know whwta happened to the rider and when the message was sent	1	34	2	-99	919
+3	east	u_0_1t_u	2	1	34	2	-99	919
+3	east	justification_49	because a telegram was sent from the west	1	34	2	-99	919
+3	east	u_u_1t_u	2	1	34	2	-99	919
+3	east	justification_51	becasuse I know something was sent from the western castle	1	34	2	-99	919
+3	east	u_1p_u_u	10	1	34	2	-99	919
+3	east	justification_55	because i know a horse left with a message from the east	1	34	2	-99	919
+3	east	u_0_u_u	2	1	34	2	-99	919
+3	east	justification_56	because no message left from the east interm station	1	34	2	-99	919
+5	east	1_1p_0_1	11	1	40	2	-99	2704
+5	east	1_justification_30_1	The carrier pigeon from the Western Castle was not able to successfully relay the info to the telegraph.	1	40	2	-99	2704
+5	east	1_1p_1t_1	1	1	40	2	-99	2704
+5	east	1_justification_39_1	The Eastern Castle was forced to use a pony rider whereas the Western Castle was able to use the faster telegraph method.	1	40	2	-99	2704
+5	east	1_u_1t_1	6	1	40	2	-99	2704
+5	east	1_justification_40_1	The Easter Telegraph received the message but it is unknown if they sent a telegraph or a pony that day, if the chances of the telegraph is working is 50-50, it's a 50-50 chance they could have triggered the alarm.	1	40	2	-99	2704
+5	east	1_0_u_1	1	1	40	2	-99	2704
+5	east	1_justification_41_1	On this day the pigeon failed to communicate the message, I'm certain the Western Castle triggered the alarm.	1	40	2	-99	2704
+5	east	u_1t_0_u	11	1	40	2	-99	2704
+5	east	justification_44	The Eastern Castle  was able to relay a message, whereas the Western Castle could not.	1	40	2	-99	2704
+5	east	u_1p_0_u	11	1	40	2	-99	2704
+5	east	justification_45	No relay was possible from the Western Castle that day.	1	40	2	-99	2704
+5	east	u_0_1p_u	1	1	40	2	-99	2704
+5	east	justification_48	There was only a relay completed by the Western Castle that day, whether or not a message was sent from the Eastern Castle is inconsequential as it didn't make it to the relay point.	1	40	2	-99	2704
+5	east	u_u_1p_u	3	1	40	2	-99	2704
+5	east	justification_52	The Westerrn Castle was able to send a message to the Palace but only via the pony method therefore it is possible the Eastern Castle triggered the alarm using the telegraph method. But it is not known if the carrier pigeon made it and, if it did, if they would be able to send a telegraph. As there are two layers of uncertainty, I'm more confident the Western castle triggered the alarm.	1	40	2	-99	2704
+5	east	u_u_0_u	11	1	40	2	-99	2704
+5	east	justification_53	The Western Castle was not able to relay a message that day.	1	40	2	-99	2704
+5	east	u_0_u_u	1	1	40	2	-99	2704
+5	east	justification_56	The Easter Castle was not able to send either a rider not a telegraph, while the information about the Western Castle is unknown it was the only one capable of completing the message and triggering the alarm.	1	40	2	-99	2704
+7	east	1_1t_0_1	11	1	38	2	-99	1087
+7	east	1_justification_29_1	It is clear that a telegram was sent from the East. No message was received from the Western castle.	1	38	2	-99	1087
+7	east	1_1p_0_1	11	1	38	2	-99	1087
+7	east	1_justification_30_1	No signal received from the West so it must have been from the Eastern Castle.	1	38	2	-99	1087
+7	east	1_1t_u_1	6	1	38	2	-99	1087
+7	east	1_justification_32_1	We don't know if a signal was received from the West. So we can't say whether it was the West or the Eastern Castle.	1	38	2	-99	1087
+7	east	1_1p_1t_1	3	1	38	2	-99	1087
+7	east	1_justification_39_1	Horses take longer and may be attacked. The telegram sent from the West would have got there first.	1	38	2	-99	1087
+7	east	1_0_1t_1	1	1	38	2	-99	1087
+7	east	1_justification_42_1	No signal reveived from the Eastern Castle so it can't have been from that.	1	38	2	-99	1087
+7	east	u_1t_0_u	11	1	38	2	-99	1087
+7	east	justification_44	Because no message was received at the western castle and a telegram was sent from the eastern castle.	1	38	2	-99	1087
+7	east	u_0_1p_u	1	1	38	2	-99	1087
+7	east	justification_48	No signal received from the East so it can't have been from the Eastern Castle!	1	38	2	-99	1087
+7	east	u_0_1t_u	1	1	38	2	-99	1087
+7	east	justification_49	No signal received by the East so it can't have been caused by the Eastern Castle. On the other hand a telegram was sent from the west.	1	38	2	-99	1087
+7	east	u_u_1t_u	6	1	38	2	-99	1087
+7	east	justification_51	We don't know if a telegram was sent from the east as well as the west.	1	38	2	-99	1087
+7	east	u_0_u_u	1	1	38	2	-99	1087
+7	east	justification_56	Because no message was received from the Eastern Castle. Although we don't know if a message was received from the Western Castle we can be sure the alarm rang at the palace so it must have come from there as it definitely didn't come from the Eastern one.	1	38	2	-99	1087
+9	west	1_1t_0_1	11	1	41	1	none	1197
+9	west	1_justification_1_1	No pigeon was received by the eastern castle and a telegram WAS sent from the western castle.	1	41	1	none	1197
+9	west	1_1t_1p_1	11	1	41	1	none	1197
+9	west	1_justification_5_1	The telegram from the western castle would have reached the palace sooner than the pony from the eastern castle thus triggering the alarm.	1	41	1	none	1197
+9	west	1_u_u_1	6	1	41	1	none	1197
+9	west	1_justification_7_1	There is an equal chance that each castle caused the alarm.	1	41	1	none	1197
+9	west	1_0_1p_1	1	1	41	1	none	1197
+9	west	justification_15	No pigeon was received from the western castle. Also, the eastern castle dispatched a pony.	1	41	1	none	1197
+9	west	u_1p_0_u	11	1	41	1	none	1197
+9	west	justification_17	A pony was sent from the western tower. Nothing was received or sent by the eastern tower.	1	41	1	none	1197
+9	west	u_1p_1t_u	1	1	41	1	none	1197
+9	west	justification_19	Eastern castle sent a telegram which would have arrived at the palace sooner than the pony sent from the western castle.	1	41	1	none	1197
+9	west	u_0_1p_u	1	1	41	1	none	1197
+9	west	justification_20	The eastern castle dispatched a pony for certain.	1	41	1	none	1197
+9	west	u_0_1t_u	1	1	41	1	none	1197
+9	west	justification_21	Eastern castle sent a telegram, triggering the alarm.	1	41	1	none	1197
+9	west	u_u_1t_u	1	1	41	1	none	1197
+9	west	justification_23	Eastern castle sent a telegram, triggering the alarm.	1	41	1	none	1197
+9	west	u_u_0_u	11	1	41	1	none	1197
+9	west	justification_25	No message was received by the eastern tower therefore it must have been the western tower that triggered the alarm.	1	41	1	none	1197
+10	west	1_u_0_1	6	1	32	2	-99	1161
+10	west	1_justification_3_1	No info and no message from other castle	1	32	2	-99	1161
+10	west	1_1t_1p_1	3	1	32	2	-99	1161
+10	west	1_justification_5_1	Tel quicker than horse	1	32	2	-99	1161
+10	west	1_1p_u_1	6	1	32	2	-99	1161
+10	west	1_justification_6_1	No info from other castle but this castle sent a rider which takes a long time	1	32	2	-99	1161
+10	west	1_1p_1p_1	6	1	32	2	-99	1161
+10	west	1_justification_9_1	Both sent the same	1	32	2	-99	1161
+10	west	1_u_1t_1	1	1	32	2	-99	1161
+10	west	1_justification_12_1	No info but other sent a tekegran	1	32	2	-99	1161
+10	west	1_0_1p_1	1	1	32	2	-99	1161
+10	west	justification_15	No message at the tower	1	32	2	-99	1161
+10	west	u_1t_1p_u	9	1	32	2	-99	1161
+10	west	justification_18	Telegram sent	1	32	2	-99	1161
+10	west	u_u_u_u	6	1	32	2	-99	1161
+10	west	justification_22	No info	1	32	2	-99	1161
+10	west	u_u_0_u	6	1	32	2	-99	1161
+10	west	justification_25	No info	1	32	2	-99	1161
+10	west	u_1t_u_u	9	1	32	2	-99	1161
+10	west	justification_26	Telegram sent	1	32	2	-99	1161
+11	east	1_1t_u_1	9	1	20	1	-99	1146
+11	east	1_justification_32_1	it could be either castle as I can't know the timings of when the telegram or pony rider could have been sent from the western castle but theres also the chance that the western castle could have lost the carrier pigeon so it is more likely that the eastern towers telegram is what set off the alarm	1	20	1	-99	1146
+11	east	1_1t_1t_1	6	1	20	1	-99	1146
+11	east	1_justification_36_1	both castle's carrier pigeons arrived at the telegram towers and both towers sent telegrams to the palace, there is no way of knowing which was sent first and so which set off the alarm.	1	20	1	-99	1146
+11	east	1_0_1t_1	1	1	20	1	-99	1146
+11	east	1_justification_42_1	eastern tower did not receive the carrier pigeon so could not pass on the message	1	20	1	-99	1146
+11	east	1_0_1p_1	1	1	20	1	-99	1146
+11	east	justification_43	the carrier pigeon did not make it to the telegram tower so neither a telegram or a pony rider could be sent from there, however the western castle's carrier pigeon did arrive at the western telegram tower and a pony rider was sent from there to the castle so that is the only way the alarm could have sounded.	1	20	1	-99	1146
+11	east	u_1t_1p_u	9	1	20	1	-99	1146
+11	east	justification_46	even though there is no information it is clear that a carrier pigeon was sent from each castle as both towers received messages. The journey of the pony rider was said to be dangerous and long so it is assumed that this would take longer than the telegram sent by the eastern castle, and therefore the telegram would be the thing that set off the alarm, however this is not stated explicitly so I cant be certain that the pony rider did not set off the alarm.	1	20	1	-99	1146
+11	east	u_1p_1t_u	2	1	20	1	-99	1146
+11	east	justification_47	it is likely the alarm was caused by the telegram as there is no risk of it being attacked by bandits but there is always the chance the pony rider was sent long before the telegram and was not attacked so set off the alarm	1	20	1	-99	1146
+11	east	u_0_1p_u	3	1	20	1	-99	1146
+11	east	justification_48	the western tower sent a pony rider that may have may have set off the alarm, the eastern tower may have lost the carrier pigeon, may have sent a pony rider who may or may not have been attacked on the way or may have sent a telegram, there also could have not have been an emergency at the eastern castle so it is likely the western castle set off the alarm	1	20	1	-99	1146
+11	east	u_0_1t_u	1	1	20	1	-99	1146
+11	east	justification_49	the telegram from the western tower set off the alarm as the eastern tower did not receive a carrier pigeon so had no message to pass on	1	20	1	-99	1146
+11	east	u_u_u_u	6	1	20	1	-99	1146
+11	east	justification_50	with no information at all to go off of it could be either castle that set off the alarm	1	20	1	-99	1146
+11	east	u_u_0_u	11	1	20	1	-99	1146
+11	east	justification_53	the western castle did not receive the carrier pigeon so could not pass on the message	1	20	1	-99	1146
+12	west	1_1t_1p_1	11	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_5_1	Eastern sent a rider, but western sent a telegram.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_1p_u_1	11	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_6_1	Rider deployed from Western Intermediate after pigeon received.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_u_1p_1	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_10_1	Pigeon didn't arrive at western. Rider sent from east when telegram failed.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_1p_1t_1	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_11_1	Eastern sent telegram.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_0_u_1	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_13_1	Pigeon never arrived at western intermediate.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_0_1t_1	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	1_justification_14_1	Telegram sent from eastern while western never received pigeon.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	u_0_1t_u	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	justification_21	X over the western intermediate, plus the successful telegram sent from the eastern, and the triggered alarm at the palace.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	u_u_1t_u	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	justification_23	Telegram sent from eastern.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	u_u_1p_u	1	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	justification_24	Eastern intermediate sent out a rider when the telegram didn't send after receiving a pigeon.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	u_1t_u_u	11	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+12	west	justification_26	Nothing triggered to the east. Telegram sent from Western.	1	38	1	note: No problems. I just wanted to tell you that this was rad and I really enjoyed it!	1636
+13	east	1_1t_0_1	11	1	34	2	-99	1658
+13	east	1_justification_29_1	eastern castle sent out a telegram	1	34	2	-99	1658
+13	east	1_u_0_1	11	1	34	2	-99	1658
+13	east	1_justification_31_1	western castle did not receive a message, eastern castle has no information	1	34	2	-99	1658
+13	east	1_1t_1t_1	6	1	34	2	-99	1658
+13	east	1_justification_36_1	both  castles sent out telegrams so the alarm could be caused by both	1	34	2	-99	1658
+13	east	1_u_1t_1	1	1	34	2	-99	1658
+13	east	1_justification_40_1	western caslte sent out a telegram	1	34	2	-99	1658
+13	east	1_0_u_1	11	1	34	2	-99	1658
+13	east	1_justification_41_1	the western castle did not receive any message so they are not aware there was an emergency	1	34	2	-99	1658
+13	east	1_0_1t_1	1	1	34	2	-99	1658
+13	east	1_justification_42_1	eastern castle did not receive a message that day.	1	34	2	-99	1658
+13	east	u_1t_0_u	11	1	34	2	-99	1658
+13	east	justification_44	eastern castle sent out a telegram , western castle has no information	1	34	2	-99	1658
+13	east	u_0_1t_u	1	1	34	2	-99	1658
+13	east	justification_49	eastern castle did not receive a a message	1	34	2	-99	1658
+13	east	u_u_1t_u	1	1	34	2	-99	1658
+13	east	justification_51	western castle sent out a telegram. the direction of communication can only go in one direction and the western castle can only send the message .	1	34	2	-99	1658
+13	east	u_0_u_u	1	1	34	2	-99	1658
+13	east	justification_56	eastern caslte did not receivd a message. Western castle has no information so its possible that they sent the a telegram or a pony rider.	1	34	2	-99	1658
+14	west	1_u_0_1	11	1	21	2	-99	1478
+14	west	1_justification_3_1	The pigeon didn’t make it to the station on the eastern side but the western side sent a pigeon but you cannot see any information at the station, but it must’ve been from the western side that the alarm was triggered	1	21	2	-99	1478
+14	west	1_1t_u_1	11	1	21	2	-99	1478
+14	west	1_justification_4_1	The western castles emergency pigeon and telegraph was recurved, but for the eastern castle there is no information to say whether the pigeon arrived at the intermediate station	1	21	2	-99	1478
+14	west	1_1p_1p_1	6	1	21	2	-99	1478
+14	west	1_justification_9_1	The alarm was triggers by both castles as they both sent pigeons and pony’s to the palace	1	21	2	-99	1478
+14	west	1_1p_1t_1	6	1	21	2	-99	1478
+14	west	1_justification_11_1	Both castles pigeons made it to the stations which the western side sent a rider to the palace and the eastern side sent a telegraph	1	21	2	-99	1478
+14	west	1_u_1t_1	6	1	21	2	-99	1478
+14	west	1_justification_12_1	An alarm was definitely caused by the eastern side, but not certain for the western side as it shows they did send out a pigeon, however there is no information to indicate whether it was recurved or not	1	21	2	-99	1478
+14	west	1_0_1t_1	1	1	21	2	-99	1478
+14	west	1_justification_14_1	They sent a pigeon but it was never recurved at the station but on the eastern side you can see that they sent a telegraph to the palace	1	21	2	-99	1478
+14	west	u_1t_0_u	11	1	21	2	-99	1478
+14	west	justification_16	The eastern side’s pigeon wasn’t received but the western castle sent a telegraph	1	21	2	-99	1478
+14	west	u_1p_1t_u	6	1	21	2	-99	1478
+14	west	justification_19	The alarms were triggered by both castles as you can see the western sent a pony to the palace and the eastern sent a telegraph	1	21	2	-99	1478
+14	west	u_0_1t_u	1	1	21	2	-99	1478
+14	west	justification_21	No pigeon was received from the western side, but a telegraph was sent out on the eastern side therefore it must’ve been from them	1	21	2	-99	1478
+14	west	u_0_u_u	1	1	21	2	-99	1478
+14	west	justification_28	The western intermediate station didn’t receive a pigeon and therefore no signal was sent from that side, so by process of elimination it must’ve been from the eastern side	1	21	2	-99	1478
+17	west	1_1t_0_1	11	1	52	1	-99	1250
+17	west	1_justification_1_1	eastern intermediate station sent nothing to palace	1	52	1	-99	1250
+17	west	1_1p_u_1	6	1	52	1	-99	1250
+17	west	1_justification_6_1	not known what was sent from eastern castle intermediate station to palace so could be either	1	52	1	-99	1250
+17	west	1_u_1t_1	6	1	52	1	-99	1250
+17	west	1_justification_12_1	its not known what was received at western intermediate station	1	52	1	-99	1250
+17	west	1_0_1t_1	1	1	52	1	-99	1250
+17	west	1_justification_14_1	no message received at western intermediate station	1	52	1	-99	1250
+17	west	u_1p_0_u	11	1	52	1	-99	1250
+17	west	justification_17	nothing was sent from eatern castle intermediate station to palace	1	52	1	-99	1250
+17	west	u_1t_1p_u	6	1	52	1	-99	1250
+17	west	justification_18	could have come from either castle based on that information	1	52	1	-99	1250
+17	west	u_0_1t_u	1	1	52	1	-99	1250
+17	west	justification_21	becasue nothing was sent from the intermediate station to the palace	1	52	1	-99	1250
+17	west	u_u_1p_u	6	1	52	1	-99	1250
+17	west	justification_24	it coule be either based on the information given	1	52	1	-99	1250
+17	west	u_1p_u_u	6	1	52	1	-99	1250
+17	west	justification_27	you do not know what the eastern castle sent to intermediate station or then onto the palace	1	52	1	-99	1250
+17	west	u_0_u_u	1	1	52	1	-99	1250
+17	west	justification_28	no message recieved at western castle intermediate station	1	52	1	-99	1250
+18	west	1_u_0_1	1	1	18	2	-99	1229
+18	west	1_justification_3_1	Pigeon was not received.	1	18	2	-99	1229
+18	west	1_1t_u_1	2	1	18	2	-99	1229
+18	west	1_justification_4_1	The pigeon may not have reached the Western intermediate station as it is unknown.	1	18	2	-99	1229
+18	west	1_u_u_1	6	1	18	2	-99	1229
+18	west	1_justification_7_1	Both castles sent pigeons and it is unknown if this was received at both.	1	18	2	-99	1229
+18	west	1_1p_1p_1	6	1	18	2	-99	1229
+18	west	1_justification_9_1	Both castles sent pigeons, both intermediate stations received this and both sent pony riders.	1	18	2	-99	1229
+18	west	1_u_1p_1	9	1	18	2	-99	1229
+18	west	1_justification_10_1	Uknown activity at east palace but know that a pony rider was sent from western immediate station.	1	18	2	-99	1229
+18	west	1_0_u_1	10	1	18	2	-99	1229
+18	west	1_justification_13_1	No message was received at the Eastern intermediate station but must have been received at the Western station.	1	18	2	-99	1229
+18	west	u_1t_0_u	1	1	18	2	-99	1229
+18	west	justification_16	No message was received at the Western castle's intermediate station, however a message was received at the Eastern intermediate station.	1	18	2	-99	1229
+18	west	u_1p_1t_u	6	1	18	2	-99	1229
+18	west	justification_19	East intermediate sent telegram and west sent pony rider.	1	18	2	-99	1229
+18	west	u_u_u_u	6	1	18	2	-99	1229
+18	west	justification_22	Unknown activity at all castles and stations.	1	18	2	-99	1229
+18	west	u_1t_u_u	3	1	18	2	-99	1229
+18	west	justification_26	East intermediate definitely sent a telegram.	1	18	2	-99	1229
+19	east	1_u_0_1	10	1	35	1	No issue	1954
+19	east	1_justification_31_1	because there is no information at the eastern castle intermediate station but, alarm has triggered	1	35	1	No issue	1954
+19	east	1_1t_u_1	11	1	35	1	No issue	1954
+19	east	1_justification_32_1	Signal sent through the Eastern castle Intermediate Station and there was no information at the western castle	1	35	1	No issue	1954
+19	east	1_1t_1t_1	9	1	35	1	No issue	1954
+19	east	1_justification_36_1	Eastern castle and Western Castle both sent the pegion and Intermediate sent the signal so, alarm could be triggerd by both of the castle	1	35	1	No issue	1954
+19	east	1_1p_1p_1	6	1	35	1	No issue	1954
+19	east	1_justification_37_1	Alarm has triggerd at the palace but, it could be triggerd for either of the castle. They both sent pony drivers, in that can any one or both could have reached to the palace.	1	35	1	No issue	1954
+19	east	1_1p_1t_1	4	1	35	1	No issue	1954
+19	east	1_justification_39_1	Western Intermediate stattion sent the telegrm signal which is faster as compared to pony driver	1	35	1	No issue	1954
+19	east	1_u_1t_1	1	1	35	1	No issue	1954
+19	east	1_justification_40_1	There is no information at the eastern Intermediate station	1	35	1	No issue	1954
+19	east	1_0_1p_1	1	1	35	1	No issue	1954
+19	east	justification_43	There is no message received signal at eastern castle Intermediate station	1	35	1	No issue	1954
+19	east	u_1p_0_u	11	1	35	1	No issue	1954
+19	east	justification_45	Because western station signal is crossed that means no message received	1	35	1	No issue	1954
+19	east	u_1t_1p_u	10	1	35	1	No issue	1954
+19	east	justification_46	Eastern castle sent the telegram signal	1	35	1	No issue	1954
+19	east	u_1p_1t_u	1	1	35	1	No issue	1954
+19	east	justification_47	There is no such information at the eastern castle	1	35	1	No issue	1954
+20	east	1_1t_0_1	11	1	30	1	-99	1331
+20	east	1_justification_29_1	The west castle's pidgen  never arrived, but the  east relay sent a  telegraph.	1	30	1	-99	1331
+20	east	1_u_0_1	11	1	30	1	-99	1331
+20	east	1_justification_31_1	The west  relay did not get the message,  thus  the east  relay (and by extension the east castle) must've caused the alarm	1	30	1	-99	1331
+20	east	1_1p_u_1	6	1	30	1	-99	1331
+20	east	1_justification_34_1	The east  sent the pony riders. Assuming that pidgen fail,  telegraph fail, and telegraph succeed are equally likely from the west, the odds are 50 50.	1	30	1	-99	1331
+20	east	1_u_1p_1	4	1	30	1	-99	1331
+20	east	1_justification_38_1	We don't know if the east relay got the message from the east, but the west sent the pony riders.   It is more likely the west caused the alarm.	1	30	1	-99	1331
+20	east	1_u_1t_1	3	1	30	1	-99	1331
+20	east	1_justification_40_1	We know the west message made it through,  we don't know about the east.	1	30	1	-99	1331
+20	east	u_1p_0_u	11	1	30	1	-99	1331
+20	east	justification_45	The  pony  riders  were  sent because of a  message from  the east castle. Nothing was recieved from the west castle.	1	30	1	-99	1331
+20	east	u_0_1t_u	1	1	30	1	-99	1331
+20	east	justification_49	The intermediary station got nothing from  the east.  But the  west sent  a telegram thus that must be the cause.	1	30	1	-99	1331
+20	east	u_u_1t_u	2	1	30	1	-99	1331
+20	east	justification_51	We  know  nothing of the east, but the west telegraph   was sent thus it  is likely that caused the alarm.	1	30	1	-99	1331
+20	east	u_u_1p_u	4	1	30	1	-99	1331
+20	east	justification_52	The west sent the pony  riders. We know nothing of the east.	1	30	1	-99	1331
+20	east	u_1p_u_u	10	1	30	1	-99	1331
+20	east	justification_55	The pony riders were sent,  implying  the east relay got a message from  the east castle. The west MAY have sent something, but  we  have no  information.	1	30	1	-99	1331
+21	west	1_1t_1p_1	11	1	25	2	-99	1108
+21	west	1_justification_5_1	Both intermediates sent out messages but the Western was by telegraph which is quicker and more reliable than by the pony sent by the Eastern.	1	25	2	-99	1108
+21	west	1_u_u_1	6	1	25	2	-99	1108
+21	west	1_justification_7_1	There's no way of knowing which caused the alarm as it's unknown what happened at both intermediate stations.	1	25	2	-99	1108
+21	west	1_u_1t_1	5	1	25	2	-99	1108
+21	west	1_justification_12_1	Both castles sent pigeons but we only know for sure that the Eastern Castle sent a telegraph. Both have the potential to cause the alarm, but if the Western Castle's intermediate had to send a pony it would have been slower than the telegraph of the Eastern Castle.	1	25	2	-99	1108
+21	west	1_0_u_1	1	1	25	2	-99	1108
+21	west	1_justification_13_1	The Western intermediate did not receive the pigeon, so even though it is unknown what happened at the Eastern intermediate, the alarm at the Palace still rang so it has to have been caused by the Eastern.	1	25	2	-99	1108
+21	west	1_0_1p_1	1	1	25	2	-99	1108
+21	west	justification_15	The Western Castle's intermediate station did not receive the pigeon so could not have sent a message to the King's Palace, whereas the Eastern's intermediate sent a pony.	1	25	2	-99	1108
+21	west	u_0_1t_u	1	1	25	2	-99	1108
+21	west	justification_21	The Western Castle's intermediate station did not receive a pigeon, the Eastern Castle's intermediate station sent a telegraph.	1	25	2	-99	1108
+21	west	u_u_1p_u	4	1	25	2	-99	1108
+21	west	justification_24	It's unknown what happened on the Western side but the Eastern sent a pony, so it's slightly more likely that they caused the alarm if the Western's message was disrupted.	1	25	2	-99	1108
+21	west	u_u_0_u	11	1	25	2	-99	1108
+21	west	justification_25	Even though it's not known what happened at the Western Castle or its intermediate station, the intermediate for the Eastern Castle did not receive the pigeon so could not have sent a telegraph or a pony to the King's Palace.	1	25	2	-99	1108
+21	west	u_1t_u_u	9	1	25	2	-99	1108
+21	west	justification_26	Slightly more likely that the Western caused the alarm as they sent a telegraph.	1	25	2	-99	1108
+21	west	u_1p_u_u	6	1	25	2	-99	1108
+21	west	justification_27	The Western Castle did send out an alarm but it was by pony so has potential to not reach the King's Palace. However nothing is known about the Eastern side.	1	25	2	-99	1108
+22	west	1_1t_0_1	11	1	24	2	-99	915
+22	west	1_justification_1_1	eastern pigeon never arrived.	1	24	2	-99	915
+22	west	1_1t_1p_1	9	1	24	2	-99	915
+22	west	1_justification_5_1	both sides sent message. eastern horse takes longer and chance of bandits.	1	24	2	-99	915
+22	west	1_1t_1t_1	6	1	24	2	-99	915
+22	west	1_justification_8_1	factors same both sides.	1	24	2	-99	915
+22	west	1_0_1p_1	1	1	24	2	-99	915
+22	west	justification_15	pigeon never got there.	1	24	2	-99	915
+22	west	u_1t_0_u	11	1	24	2	-99	915
+22	west	justification_16	eastern poigeon never got there.	1	24	2	-99	915
+22	west	u_1t_1p_u	8	1	24	2	-99	915
+22	west	justification_18	both sides sent a message. eastern pony couldve been atacked by bandits.	1	24	2	-99	915
+22	west	u_0_1t_u	1	1	24	2	-99	915
+22	west	justification_21	pigeon failed to arrive.	1	24	2	-99	915
+22	west	u_u_1p_u	4	1	24	2	-99	915
+22	west	justification_24	we know eastern castle sent a pony rider so that's more likely the cause. but there's a chance western castle sent a pony or telegram first.	1	24	2	-99	915
+22	west	u_u_0_u	11	1	24	2	-99	915
+22	west	justification_25	eastern pigeon never arrived.	1	24	2	-99	915
+22	west	u_0_u_u	1	1	24	2	-99	915
+22	west	justification_28	pigeon never got there,	1	24	2	-99	915
+23	west	1_1t_0_1	10	1	56	2	-99	2146
+23	west	1_justification_1_1	Because a telegraph was sent by the information from the Western Castle so it is likely that the alarm was triggered by that.	1	56	2	-99	2146
+23	west	1_1p_0_1	11	1	56	2	-99	2146
+23	west	1_justification_2_1	Because the message system appeared to be working.	1	56	2	-99	2146
+23	west	1_u_0_1	8	1	56	2	-99	2146
+23	west	1_justification_3_1	The information from the Eastern Castle was not received so I believe it is likely to be from the Western Castle where there is no information but it could have been likely	1	56	2	-99	2146
+23	west	1_1t_1p_1	11	1	56	2	-99	2146
+23	west	1_justification_5_1	The message from the information tower from the Western Castle was sent by telegraph which is quicker than the rider from the East	1	56	2	-99	2146
+23	west	1_0_u_1	3	1	56	2	-99	2146
+23	west	1_justification_13_1	The message from the Western Castle was not received therefore although there is no information about the message from the Eastern Castle it is possible it was received.	1	56	2	-99	2146
+23	west	1_0_1p_1	1	1	56	2	-99	2146
+23	west	justification_15	The message from the Western Castle was not received but a rider was sent from the information tower after a message was received from the Eastern Castle	1	56	2	-99	2146
+23	west	u_1p_1t_u	2	1	56	2	-99	2146
+23	west	justification_19	The message from the Eastern Castle was sent by telegraph which is quicker than the rider sent by the Western Castle	1	56	2	-99	2146
+23	west	u_u_1p_u	2	1	56	2	-99	2146
+23	west	justification_24	There is no information on what happened to the messages from the Western Castle but a rider was sent by the Eastern Castle	1	56	2	-99	2146
+23	west	u_u_0_u	9	1	56	2	-99	2146
+23	west	justification_25	It is more likely the alarm was triggered by the Western Castle as the message sent from the Eastern Castle was not received.	1	56	2	-99	2146
+23	west	u_0_u_u	1	1	56	2	-99	2146
+23	west	justification_28	Whilst there is no information about the messages from the Western Castle, the message from the Eastern Castle was not received	1	56	2	-99	2146
+24	east	1_1p_0_1	11	1	55	1	-99	1488
+24	east	1_justification_30_1	Both castles sent out carrier pigeons. The westerns castle was not received and nothing happened. The eastern pigeon caused a pony rider to be sent to the palace causing the alarm.	1	55	1	-99	1488
+24	east	1_u_0_1	11	1	55	1	-99	1488
+24	east	1_justification_31_1	Nothing received by western tower	1	55	1	-99	1488
+24	east	1_1t_u_1	11	1	55	1	-99	1488
+24	east	1_justification_32_1	Only known is the eastern tower sent a telegraph.	1	55	1	-99	1488
+24	east	1_1p_u_1	6	1	55	1	-99	1488
+24	east	1_justification_34_1	pony rider sent out by Eastern, not enough information to confirm if the western side did.	1	55	1	-99	1488
+24	east	1_0_u_1	1	1	55	1	-99	1488
+24	east	1_justification_41_1	Both sides sent pigeons. The Eastern side was not received. Although not enough details of how it was sent via The Western tower the alarms was raised by the palace.	1	55	1	-99	1488
+24	east	u_1t_0_u	11	1	55	1	-99	1488
+24	east	justification_44	Not enough known about who sent pigeons the eastern tower sent out a telegraph.	1	55	1	-99	1488
+24	east	u_u_u_u	6	1	55	1	-99	1488
+24	east	justification_50	There is not enough information to confirm anything.	1	55	1	-99	1488
+24	east	u_u_1t_u	1	1	55	1	-99	1488
+24	east	justification_51	Only confirmed information is the western tower sent a telegraph.	1	55	1	-99	1488
+24	east	u_u_1p_u	1	1	55	1	-99	1488
+24	east	justification_52	A pony rider was sent by the western side. Not enough information to confirm anything else.	1	55	1	-99	1488
+24	east	u_1t_u_u	11	1	55	1	-99	1488
+24	east	justification_54	Only confirmed information is eastern tower sent a telegraph.	1	55	1	-99	1488
+26	east	1_u_0_1	11	1	57	2	No issues	2024
+26	east	1_justification_31_1	Palace shows alarm triggered and both castles sent pigeons but only the eastern station allows for the possibility of a response being forwarded as the western castle shows no message.	1	57	2	No issues	2024
+26	east	1_1t_1t_1	6	1	57	2	No issues	2024
+26	east	1_justification_36_1	Palace shows alarm triggered icon, but each castle and station indicates both sent pigeons and telegraphs so depending upon conditions and timings etc either could have caused the alarm.	1	57	2	No issues	2024
+26	east	1_1p_1p_1	6	1	57	2	No issues	2024
+26	east	1_justification_37_1	Palace shows alarm triggered and both castles sent pigeons and both stations sent pony riders, so depending upon timings etc either castle could have triggered the alarm	1	57	2	No issues	2024
+26	east	1_1p_1t_1	2	1	57	2	No issues	2024
+26	east	1_justification_39_1	Palace shows alarm, both castles sent pigeons but only western station shows telegraph icon whilst eastern shows pony rider.  Assume telegraph would reach Palace sooner than pony rider - however depends upon differing pigeons arrival times at stations as to when forwarding communications sent.	1	57	2	No issues	2024
+26	east	1_0_1p_1	1	1	57	2	No issues	2024
+26	east	justification_43	Both castles sent a pigeon but only the western station sent a response (pony rider) to the palace to trigger the alarm.	1	57	2	No issues	2024
+26	east	u_0_1p_u	1	1	57	2	No issues	2024
+26	east	justification_48	Both castles show that there is no information regarding sending a pigeon to its station.  However, the western station sent a pony rider to the Palace whereas the eastern station shows no message.	1	57	2	No issues	2024
+26	east	u_0_1t_u	1	1	57	2	No issues	2024
+26	east	justification_49	Western station shows a telegraph icon whilst eastern station shows no message received.	1	57	2	No issues	2024
+26	east	u_u_u_u	6	1	57	2	No issues	2024
+26	east	justification_50	No information given for any of castles or stations although Palace alarm triggered, could be either castle.	1	57	2	No issues	2024
+26	east	u_u_0_u	11	1	57	2	No issues	2024
+26	east	justification_53	Palace shows alarm was triggered, whilst both castles show no information available only the eastern station shows a possibility that a message was sent as unknown information whereas the western station shows no message received.	1	57	2	No issues	2024
+26	east	u_0_u_u	1	1	57	2	No issues	2024
+26	east	justification_56	Palace shows alarm icon so something was received and the only station showing a possible response via no information available was the western station.	1	57	2	No issues	2024
+27	east	1_1t_0_1	11	1	29	1	N/A	1486
+27	east	1_justification_29_1	No information was received via the Western Castle, whereas the Eastern Castle successfully sent a message to the palace.	1	29	1	N/A	1486
+27	east	1_1p_0_1	11	1	29	1	N/A	1486
+27	east	1_justification_30_1	No pigeon was received at the Western station, so by process of elimination the alarm must have been raised by the rider from the East.	1	29	1	N/A	1486
+27	east	1_1t_1p_1	8	1	29	1	N/A	1486
+27	east	1_justification_33_1	Both castle's pigeons were received, but there is a higher likelihood of the message from the Eastern station being received than the rider from the West who may be intercepted.	1	29	1	N/A	1486
+27	east	1_1t_1t_1	6	1	29	1	N/A	1486
+27	east	1_justification_36_1	Both castles sent a message via the same method and there is no way of knowing which one reached the palace first.	1	29	1	N/A	1486
+27	east	1_1p_1p_1	6	1	29	1	N/A	1486
+27	east	1_justification_37_1	Both castles sent out pigeons which resulted in riders being sent to the palace. There is no way of knowing which one made it first to raise the alarm (assuming both made it).	1	29	1	N/A	1486
+27	east	1_u_1t_1	2	1	29	1	N/A	1486
+27	east	1_justification_40_1	The Western Castle/station successfully transmitted a message to the palace, whereas there is no way of knowing if the Eastern Castle's pigeon was received (or method of message if so).	1	29	1	N/A	1486
+27	east	1_0_1t_1	1	1	29	1	N/A	1486
+27	east	1_justification_42_1	Once again no information was received from the Eastern Castle (pigeon presumably lost), so alarm must have been raised by Western Castle who transmitted a message.	1	29	1	N/A	1486
+27	east	u_u_1t_u	2	1	29	1	N/A	1486
+27	east	justification_51	The Western Castle's station sent a message successfully, whereas there is no way to know what happened in the East.	1	29	1	N/A	1486
+27	east	u_1p_u_u	8	1	29	1	N/A	1486
+27	east	justification_55	A rider was sent from the station serving the Eastern Castle, whereas there is no way of knowing if an incident occurred in the Western Castle (or their method of message if so). However you cannot be certain if the rider made it to the palace to raise the alarm.	1	29	1	N/A	1486
+27	east	u_0_u_u	1	1	29	1	N/A	1486
+27	east	justification_56	An alarm was raised but no information was received from the Eastern Castle, by process of elimination it must have been the Western Castle.	1	29	1	N/A	1486
+29	west	1_1t_0_1	11	1	30	1	-99	1464
+29	west	1_justification_1_1	Western tower sent a telegram and eastern tower didn't receive it's message.	1	30	1	-99	1464
+29	west	1_1t_1p_1	9	1	30	1	-99	1464
+29	west	1_justification_5_1	It is likely that the telegram reached the castle before the rider.	1	30	1	-99	1464
+29	west	1_u_1t_1	6	1	30	1	-99	1464
+29	west	1_justification_12_1	It is unknown what happened at the western tower.	1	30	1	-99	1464
+29	west	1_0_1p_1	1	1	30	1	-99	1464
+29	west	justification_15	It had to be the eastern rider.	1	30	1	-99	1464
+29	west	u_1t_0_u	11	1	30	1	-99	1464
+29	west	justification_16	Western tower sent a telegram and eastern didn't receive a message.	1	30	1	-99	1464
+29	west	u_1p_0_u	11	1	30	1	-99	1464
+29	west	justification_17	Western tower sent out a rider.	1	30	1	-99	1464
+29	west	u_0_1p_u	1	1	30	1	-99	1464
+29	west	justification_20	Eastern tower sent out a rider.	1	30	1	-99	1464
+29	west	u_u_u_u	6	1	30	1	-99	1464
+29	west	justification_22	Everything is unknown.	1	30	1	-99	1464
+29	west	u_u_1t_u	1	1	30	1	-99	1464
+29	west	justification_23	There was a telegram at the eastern tower.	1	30	1	-99	1464
+29	west	u_u_0_u	11	1	30	1	-99	1464
+29	west	justification_25	Eastern tower didn't receive a message.	1	30	1	-99	1464
+30	west	1_1t_0_1	8	1	26	2	-99	970
+30	west	1_justification_1_1	There was a telegraphy send to the kings palace so it was likely as the other failed that it would have been the western.	1	26	2	-99	970
+30	west	1_1t_u_1	10	1	26	2	-99	970
+30	west	1_justification_4_1	There was little to no information from the south so there would be a greater chance that it has come from the west as a telegraph again was sent.	1	26	2	-99	970
+30	west	1_1p_1p_1	6	1	26	2	-99	970
+30	west	1_justification_9_1	There was a 50:50 chance as it could have be the South Castle as they also had an emergency and a horse rider sent, but due to bandits it might not always get to the palace, so I would believe that there was an even chance that it could have been either south or western that day.	1	26	2	-99	970
+30	west	1_u_1p_1	4	1	26	2	-99	970
+30	west	1_justification_10_1	I believe because little to no information was sent from the western castle it wouldn't have set off the alarms, or it would be more likely that the horse rider would have.	1	26	2	-99	970
+30	west	1_0_u_1	6	1	26	2	-99	970
+30	west	1_justification_13_1	I believe because of the mis information and the little information there was a chance it could have been either.	1	26	2	-99	970
+30	west	u_1p_0_u	9	1	26	2	-99	970
+30	west	justification_17	The horse rider was sent with information so I believe it would have been likely to sent off the alarm.	1	26	2	-99	970
+30	west	u_1t_1p_u	6	1	26	2	-99	970
+30	west	justification_18	From what I can gather, this is a an even chance between either the horse or telegraph being received by the king's palace as the telegraph is new technology so it has a chance of not working and has a similar chance to horses being caught by bandits so to me, is an even chance.	1	26	2	-99	970
+30	west	u_0_1p_u	2	1	26	2	-99	970
+30	west	justification_20	The south sent a horse rider and was more likely.	1	26	2	-99	970
+30	west	u_u_0_u	3	1	26	2	-99	970
+30	west	justification_25	I believe that because there was no information that nothing would have been sent to the kings palace.	1	26	2	-99	970
+30	west	u_1t_u_u	10	1	26	2	-99	970
+30	west	justification_26	Likely as it's sent a telegraph.	1	26	2	-99	970
+31	east	1_1p_u_1	11	1	25	2	none	870
+31	east	1_justification_34_1	There is no information on what happened from the western castle and a pony was sent from the eastern tower.	1	25	2	none	870
+31	east	1_1p_1t_1	6	1	25	2	none	870
+31	east	1_justification_39_1	A telegraph was successfully sent from the western tower and a pony was sent from the eastern tower so depending on the timing, it could be either one.	1	25	2	none	870
+31	east	1_u_1t_1	3	1	25	2	none	870
+31	east	1_justification_40_1	Both castles sent a pigeon to the towers but it only shows a successful telegraph from the western tower, so the signal is likely to have come from there.	1	25	2	none	870
+31	east	1_0_u_1	4	1	25	2	none	870
+31	east	1_justification_41_1	A carrier pigeon was sent out from both castles. THere is no information about what happened at the western tower but it shows that no information was received at the eastern tower.	1	25	2	none	870
+31	east	u_1p_0_u	11	1	25	2	none	870
+31	east	justification_45	There is no known information about what happened at either castle, but it shows a pony was sent successfully from the eastern tower so it was likely the eastern castle that triggered the alarm.	1	25	2	none	870
+31	east	u_0_1p_u	1	1	25	2	none	870
+31	east	justification_48	Although there is no known information about what happened from either castle, a pony was successfully sent from the western tower. No information was given on what happened at the eastern tower.	1	25	2	none	870
+31	east	u_u_u_u	6	1	25	2	none	870
+31	east	justification_50	No information is given on what happened at either castle or either tower so the alarm could have come equally from either castle.	1	25	2	none	870
+31	east	u_u_1t_u	3	1	25	2	none	870
+31	east	justification_51	There is no known information about what happened at the eastern castle or tower, but a telegraph was successfully sent from the western tower so that is probably what triggered the alarm.	1	25	2	none	870
+31	east	u_1t_u_u	9	1	25	2	none	870
+31	east	justification_54	There is no known information on what happened at either castle but it shows  a successful telegraph from the eastern tower so that is most likely what caused the alarm to trigger.	1	25	2	none	870
+31	east	u_0_u_u	3	1	25	2	none	870
+31	east	justification_56	There is no information on what happened on the western side of the castle or tower but since it shows that no information was received at the eastern tower, the signal probably came from the west.	1	25	2	none	870
+32	east	1_u_0_1	11	1	45	2	-99	1447
+32	east	1_justification_31_1	pigeons were sent by both towers but only east's was received	1	45	2	-99	1447
+32	east	1_1t_1p_1	1	1	45	2	-99	1447
+32	east	1_justification_33_1	Both castles sent out pigeons, west tower sent out a pony, east tower sent a telegraph.  Telegraphs are quicker than ponies.	1	45	2	-99	1447
+32	east	1_1p_1t_1	1	1	45	2	-99	1447
+32	east	1_justification_39_1	both castles sent out pigeons, east sent a pony which is slower than the telegraph that west sent	1	45	2	-99	1447
+32	east	1_0_u_1	1	1	45	2	-99	1447
+32	east	1_justification_41_1	no pigeon was received at east's tower, so could not be them	1	45	2	-99	1447
+32	east	1_0_1p_1	1	1	45	2	-99	1447
+32	east	justification_43	east castle's pigeon was not received by tower, so cannot be them	1	45	2	-99	1447
+32	east	u_0_1t_u	1	1	45	2	-99	1447
+32	east	justification_49	No pigeon was received at east tower, but a signal was sent out from west's	1	45	2	-99	1447
+32	east	u_u_1p_u	6	1	45	2	-99	1447
+32	east	justification_52	A pony was sent out by west but we have no info from east, so could be either	1	45	2	-99	1447
+32	east	u_u_0_u	1	1	45	2	-99	1447
+32	east	justification_53	west's pigeon was not received, so it must have been east's	1	45	2	-99	1447
+32	east	u_1p_u_u	6	1	45	2	-99	1447
+32	east	justification_55	east sent out a pony, we don't have any info about west, so it could have been them, or not	1	45	2	-99	1447
+32	east	u_0_u_u	1	1	45	2	-99	1447
+32	east	justification_56	east's pigeon was not received so it cannot have been them that triggered the alarm	1	45	2	-99	1447
