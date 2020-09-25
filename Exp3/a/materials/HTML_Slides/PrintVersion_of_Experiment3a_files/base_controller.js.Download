@@ -1,0 +1,29 @@
+/*
+Copyright (c) 1999-2013 QuestBack GmbH
+*/
+
+if(!dojo._hasResource["efs.components.base_controller"]){
+dojo._hasResource["efs.components.base_controller"]=true;
+dojo.provide("efs.components.base_controller");
+dojo.declare("efs.components.base_controller",null,{options:{},constructor:function(_1){
+this.options=_1;
+},test:function(){
+console.log("base_controller::test");
+},get:function(_2){
+if(this.options[_2]){
+return this.options[_2];
+}else{
+return null;
+}
+},preDispatch:function(){
+},postDispatch:function(){
+},_forward:function(_3,_4,_5){
+dojo.require(_4);
+eval("var obj = new "+_4+"(dojo.delegate(params,this.options));");
+eval("obj.preDispatch();");
+eval("obj."+_3+"();");
+eval("obj.postDispatch();");
+},setOptions:function(_6){
+this.options=_6;
+}});
+}
