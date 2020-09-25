@@ -1,0 +1,1 @@
+The HTML-File contains a print version of the study. It doesn't give the same visual impression as the real study but contains all the materials. To see this file properly, you need also need to download the folder content.
