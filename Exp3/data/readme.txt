@@ -1,4 +1,4 @@
-The file "Exp3a_data.txt" contains the experimental raw data in wide format:
+The file "Exp3_data.txt" contains the experimental raw data in wide format:
 
 The column "sID" denotes the subject identifiers
 
