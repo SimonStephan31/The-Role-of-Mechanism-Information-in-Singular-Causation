@@ -1,0 +1,638 @@
+---
+title: "Analysis Sample and Effect Size 11"
+author: Simon Stephan
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# code that automatically sets the WD to source file location
+#rstudioapi::getActiveDocumentContext
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd() # check wd
+
+# packages
+library(ez)
+library(reshape2)
+library(reshape)
+library(ggplot2)
+library(plyr)
+library(pastecs)
+library(data.table)
+library(psych)
+
+library(showtext)
+
+font_add_google("Poppins", "Poppins")
+font_add_google("Roboto Mono", "Roboto Mono")
+showtext_auto()
+```
+
+```{r}
+# read data 
+#tdata.wide <- read.delim("dummy_data.txt", header=TRUE, sep="\t", na.strings="NA", dec=".", strip.white=TRUE)
+tdata <- read.delim("Exp3_data.txt", header=TRUE, sep="\t", na.strings="NA", dec=".", strip.white=TRUE)
+```
+
+# Demographics
+```{r}
+mean(tdata$Age)
+sd(tdata$Age)
+
+colnames(tdata)[12] <- "Sex" # rename column listing subjects' sex
+table(tdata$Sex) # 1 = male, 2 = female, 3 = non-binary
+```
+
+# Data preparation
+```{r, message=FALSE}
+# declare factor
+
+tdata$High_Strength_Component <- factor(tdata$High_Strength_Component, levels = c("Terminal", "Root"))
+tdata$Observation_Order <- factor(tdata$Observation_Order, levels = c("unobserved_first", "observed_first"))
+
+tdata$diag_prob_rating <- (tdata$diag_prob_rating - 1) * 0.1
+
+tdata_attributions <- subset(tdata, select = c(1:6))
+tdata_diagnostics <- subset(tdata, select = c(1:4,7))
+tdata_diagnostics$High_Strength_Component <- factor(tdata_diagnostics$High_Strength_Component, levels = c("Root", "Terminal"))
+
+# rename columns 
+colnames(tdata_attributions)
+colnames(tdata_attributions)<- c("sID", "High_Strength_Component", "Target", "Observation_Order", "1_1_u_1", "1_u_u_1")
+
+```
+
+
+
+
+```{r, message=FALSE}
+tdata_attributions_long <- melt(tdata_attributions, id=c("sID", "High_Strength_Component", "Target", "Observation_Order"))
+
+tdata_attributions_long$variable <- factor(tdata_attributions_long$variable, levels = c("1_u_u_1", "1_1_u_1"))
+
+# 5. recode dependent variables (because Subj. answered on a 1 to 11 scale but we want 0 to 10)
+tdata_attributions_long$value <- (tdata_attributions_long$value - 1) * 0.1
+
+tdata_attributions_long["title"] <- c(rep("Human judgments", length(tdata_attributions_long$sID)))
+```
+
+# Make bar charts 
+
+## Chart showing the predictions 
+
+```{r, echo = FALSE}
+# create a theme to handle the design 
+myTheme <- theme(plot.title = element_text(face="bold", size = 12),
+        axis.title.x = element_text(face = "bold", size = 10),
+        axis.title.y = element_text(face = "bold", size = 10),
+        axis.text.x = element_text(size = 6, angle = 45, hjust = 1), 
+        axis.text.y = element_text(size = 4, angle = 90),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 12),
+        strip.text.x = element_text(size = 12),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        panel.background = element_blank(), 
+        axis.line.x = element_line(colour = "black"), 
+        axis.line.y = element_line(colour = "black"),
+        axis.text = element_text(colour ="black"), 
+        axis.ticks = element_line(colour ="black"))
+
+```
+
+## predictions based on integration of information from both potential causes
+
+
+## predictions 
+
+```{r}
+# derive the model predictions for the condition in which the terminal path is strong
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength between root causes and mechanism nodes
+wcmc <- 0.1
+wama <- wcmc
+
+# strength of mechanism component
+wmce <- 0.9 # the strong path
+wmae <- wmce
+
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 2 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_u_1_u_1
+#  2) 1_1t_1_u_1
+
+
+##################################################
+
+# function for generalized power model of singular causation 
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# 1) 1_u_1_u_1
+power_target <- wcmc * wmce
+power_alt <- wama * wmae
+alpha <- alpha_symmetric
+
+singular_1 <- generalized_model(power_target, power_alt, alpha)
+
+
+# 1) 1_1_1_u_1
+power_target <- wmce # simply the determined link strength
+power_alt <- wama * wmae
+alpha <- alpha_symmetric
+
+
+singular_2 <- generalized_model(power_target, power_alt, alpha)
+
+singular_1
+singular_2
+```
+
+
+```{r}
+# derive the model predictions for the condition in which the root path is strong 
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength between root causes and mechanism nodes
+wcmc <- 0.9
+wama <- wcmc
+
+# strength of mechanism component
+wmce <- 0.1 # the strong path
+wmae <- wmce
+
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 2 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_u_1_u_1
+#  2) 1_1t_1_u_1
+
+
+##################################################
+
+# function for generalized power model of singular causation 
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# 1) 1_u_1_u_1
+power_target <- wcmc * wmce
+power_alt <- wama * wmae
+alpha <- alpha_symmetric
+
+singular_3 <- generalized_model(power_target, power_alt, alpha)
+
+
+# 1) 1_1_1_u_1
+power_target <- wmce # simply the determined link strength
+power_alt <- wama * wmae
+alpha <- alpha_symmetric
+
+
+singular_4 <- generalized_model(power_target, power_alt, alpha)
+
+singular_3
+singular_4
+```
+
+```{r}
+# create a data file containing the predictions 
+
+High_Strength_Component <- c(rep("Root",4), rep("Terminal",4))
+Observation_Order <- c(rep(c("unobserved_first", "unobserved_first", "observed_first", "observed_first"),4))
+
+variable <- c(rep(c("1_u_u_1", "1_1_u_1", "1_1_u_1", "1_u_u_1"),2))
+
+value <- c(singular_3, singular_4, singular_4, singular_3, singular_1, singular_2, singular_2, singular_1)
+
+title <- c(rep("Ordinal predictions: integration of target and alternative cause", length(value)))
+
+preds <- data.frame(High_Strength_Component, Observation_Order, variable, value, title)
+
+preds$High_Strength_Component <- factor(preds$High_Strength_Component, levels = c("Terminal", "Root"))
+preds$Observation_Order <- factor(preds$Observation_Order, levels = c("unobserved_first", "observed_first"))
+preds$variable <- factor(preds$variable, levels = c("1_u_u_1", "1_1_u_1"))
+```
+
+```{r}
+library(scales) 
+
+theme_set(theme_bw(base_size = 12, base_family = "Poppins"))
+
+
+ggplot(preds, aes(x=variable, y=value, group = High_Strength_Component, colour= High_Strength_Component)) + 
+  ggtitle("a) Predictions") +
+  coord_cartesian(ylim=c(0,1)) +
+  #coord_flip()+
+  #scale_y_continuous(limits = c(0,1), breaks=seq(0, 1, 0.25), expand = c(0,0)) +
+  #scale_x_discrete(labels=c("Direct: one link", "Iindirect: two links", "Indirect: five links")) +
+  #stat_summary(fun.y = mean, geom = "bar", position = "dodge", colour = "black") +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0, position=position_dodge(0.1), size = 1) +
+  stat_summary(aes(y = value), fun.y=mean, geom="line", position=position_dodge(0.1), size = 1, alpha = 0.7)+
+  stat_summary(aes(y = value), fun.y=mean, colour="black", fill = c("#005083", "#005083", "#f0b64d", "#f0b64d"), geom="point", shape = 21, size = 3, position=position_dodge(0.1))+
+  #geom_jitter(alpha = 0.2, colour = "black") +
+  #stat_summary(fun.y = median, geom = "point", shape = 23, size = 3, position = position_dodge(width = 0.90), colour = "black") +
+  #geom_hline(yintercept=0.9) + 
+  #ggtitle("Means (95% bootstr. CIs)") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 13),
+      axis.text.y = element_text(angle = 90, color = "black", size = 12, hjust = 0.2),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      panel.grid = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+  labs(x = "Observed singular case", y = "Confidence that C = 1 caused E = 1") +
+  scale_color_manual(name  ="High-strength comp.", labels=c("terminal path", "root path"), values=c("#005083", "#f0b64d")) +
+  #scale_colour_discrete(name  ="Diagnostic judgment", labels=c("correct", "incorrect")) +
+  theme(legend.position="top")
+  #theme(legend.position = c(0.2, 0.2),
+   #     legend.title = element_text(size = 8),
+    #    legend.text = element_text(size = 8),
+     #   legend.background = element_rect(fill=alpha("grey", 0.4)))
+
+
+#ggsave("predictions1.svg",width=5,height=4)
+#ggsave("predictions1.pdf",width=5,height=4)
+
+
+```
+
+```{r}
+# plot the interaction effect together with its 95% CI 
+
+t <- qt(0.975, 142, lower.tail = TRUE, log.p = FALSE)
+#t
+
+effect <- "Delta D"
+D_Mdiff <- round((singular_2 - singular_1) - (singular_4 - singular_3),1)
+SE <- 0.00
+CI <- SE*t
+CI_low <- D_Mdiff - CI
+CI_up <- D_Mdiff + CI
+
+DMdiff <- data.frame(effect, D_Mdiff, CI_low, CI_up)
+
+ggplot(DMdiff, aes(x=effect, y=D_Mdiff)) +
+    #coord_cartesian(ylim=c(-0.02,0.15)) +
+    #scale_y_continuous(limits = c(0,0.2), breaks=seq(0, 0.2, 0.1), expand = c(0,0)) +
+    #geom_line() +
+    geom_errorbar(width=.0, aes(ymin=DMdiff$CI_low, ymax=DMdiff$CI_up)) +
+    geom_point(shape=17, size=3, fill="red", color = "black") +
+    #ylim(-0.02,0.3)+
+    scale_y_continuous(limits=c(-0.02, 0.8), breaks = seq(-0.02, 0.8, 0.2))+
+    geom_hline(yintercept=0, linetype="dashed", color = "red")+
+   theme(
+      legend.position = "none",
+      axis.line.y = element_line(colour = "black"),
+      axis.title.x = element_blank(),
+      axis.ticks.y = element_line(color = "black"),
+      axis.ticks.x = element_blank(),
+      #axis.ticks.y = element_line(colour = "black"),
+      axis.text.x = element_text(size = 10, color = "black"),
+      axis.title.y = element_blank(),
+      axis.text.y = element_text(size = 12, color = "black"),
+      panel.grid = element_blank(),
+      panel.border = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )
+
+#ggsave("interaction_main_pred.svg",width=1,height=2)
+#ggsave("interaction_main_pred.pdf",width=1,height=2)
+
+```
+
+
+## Chart showing human diagnostic judgments 
+
+```{r}
+
+diag_judgments <- ggplot(tdata_diagnostics, aes(High_Strength_Component, diag_prob_rating)) + 
+  #facet_grid(. ~ Parameter_Info) +
+  coord_cartesian(ylim=c(0,1)) + 
+  scale_y_continuous(limits = c(0,1), breaks=seq(0, 1, 0.2), expand = c(0,0)) +
+  #scale_x_discrete(labels=c("Direct: one link", "Iindirect: two links", "Indirect: five links")) +
+  stat_summary(fun.y = mean, geom = "bar", position = "dodge", colour = "black", fill = "#bcbddc") +
+  #geom_errorbar(aes(ymin= dat$means - dat$conf, 
+  #                  ymax=dat$means + dat$conf), position = position_dodge(width = 0.10), width=0.2)+
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", position = position_dodge(width = 0.90), width = 0.2) +
+  #ggtitle("Means (95% bootstr. CIs)") +
+  theme(plot.title = element_text(face="bold", size = 12),
+        axis.title.x = element_text(face = "bold", size = 12),
+        axis.title.y = element_text(face = "bold", size = 12),
+        axis.text.x = element_text(face = "bold", size = 12), 
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size = 12),
+        strip.text.x = element_text(size = 12),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        panel.background = element_blank(), 
+        axis.line.x = element_line(colour = "black"), 
+        axis.line.y = element_line(colour = "black"),
+        axis.text = element_text(colour ="black"), 
+        axis.ticks = element_line(colour ="black")) + 
+  labs(x = "Location of highest strength", y = "Probability of Mechanism Activation") +
+  scale_fill_manual(values=c("#bcbddc", "#3182bd")) +
+  theme(legend.position="none")
+
+diag_judgments
+
+
+#ggsave("diagnostic_judgments.png",width=5,height=6)
+```
+
+```{r}
+
+tdata_diagnostics$High_Strength_Component <- factor(tdata_diagnostics$High_Strength_Component, levels = c("Terminal", "Root"))
+
+ggplot(tdata_diagnostics, aes(High_Strength_Component, diag_prob_rating, color = High_Strength_Component, fill = High_Strength_Component)) + 
+  ggtitle("c) Subjects' estimations of the probability that the alternative cause's mechanism was active")+
+  #coord_cartesian(ylim=c(-0.1,2)) + 
+  scale_y_continuous(limits = c(-0.05, 1.06), breaks=seq(0, 1, 0.25), expand = c(0,0)) +
+  scale_x_discrete()+
+  #scale_x_discrete(labels=c("terminal path", "root path")) +
+  #stat_summary(fun.y = mean, geom = "bar", position = "dodge", colour = "black", fill = "#bcbddc") +
+  #geom_errorbar(aes(ymin= dat$means - dat$conf, 
+  #                  ymax=dat$means + dat$conf), position = position_dodge(width = 0.10), width=0.2)+
+  #annotate("rect", xmin=1.7, xmax=2.3, ymin=0.50, ymax=1.05, fill="#31a354", alpha=0.6, color = "black") +
+  #annotate("rect", xmin=1.7, xmax=2.3, ymin=0.0, ymax=0.50, fill="#de2d26", alpha=0.6, color = "black") +
+  #annotate("rect", xmin=1.7, xmax=2.3, ymin=0.95, ymax=1.05, color="#31a354", fill = "white", size = 1.5) +
+  #annotate("rect", xmin=1.7, xmax=2.3, ymin=0.45, ymax=0.55, color="#de2d26", fill = "white", size = 1.5) +
+  geom_jitter(width = 0.3, height = 0.02, alpha = 0.6) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", position = position_dodge(width = 0.90), width = 0, size = 1) +
+  stat_summary(fun.y=mean, colour="grey20", geom="point", shape = 21, size = 3)+
+  #ggtitle("Means (95% bootstr. CIs)") +
+  theme(
+  legend.position = "none",
+      axis.title = element_text(size = 13.5),
+      axis.text.y = element_text(angle = 90, color = "black", size = 12.5, hjust = 0.2),
+      axis.text.x = element_text(color = "black", size = 12.5),
+      #axis.title.x = element_blank(),
+      panel.grid = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+  #theme(axis.text.x = element_text(size = 10, angle = 0, hjust = 0.5))+
+  labs(x = "High-strength component", y = "Estimated probability") +
+  scale_color_manual(values=c("#005083", "#f0b64d")) +
+  scale_fill_manual(values=c("#005083", "#f0b64d")) +
+  theme(legend.position="none")
+
+
+#ggsave("diagnostic_judgments_jit.pdf",width=5,height=4)
+```
+
+```{r}
+by(tdata_diagnostics$diag_prob_rating, list(tdata_diagnostics$High_Strength_Component), stat.desc , basic = FALSE)
+
+```
+
+
+## Chart showing human singular causation judgments
+
+how within-subject error bars are to be computed can be found here: http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/ 
+
+
+```{r}
+library(scales) 
+
+theme_set(theme_bw(base_size = 12, base_family = "Poppins"))
+
+ggplot(tdata_attributions_long, aes(x=variable, y=value, group = High_Strength_Component, colour= High_Strength_Component)) + 
+  ggtitle("b) Human singular causation judgments") +
+  coord_cartesian(ylim=c(0,1)) +
+  #coord_flip()+
+  #scale_y_continuous(limits = c(0,1), breaks=seq(0, 1, 0.25), expand = c(0,0)) +
+  #scale_x_discrete(labels=c("Direct: one link", "Iindirect: two links", "Indirect: five links")) +
+  #stat_summary(fun.y = mean, geom = "bar", position = "dodge", colour = "black") +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0, position=position_dodge(0.1), size = 1) +
+  stat_summary(aes(y = value), fun.y=mean, geom="line", position=position_dodge(0.1), size = 1, alpha = 0.7)+
+  stat_summary(aes(y = value), fun.y=mean, colour="grey20", fill = c("#005083", "#005083", "#f0b64d", "#f0b64d"), geom="point", shape = 21, size = 3, position=position_dodge(0.1))+
+  #geom_jitter(alpha = 0.2, colour = "black") +
+  #stat_summary(fun.y = median, geom = "point", shape = 23, size = 3, position = position_dodge(width = 0.90), colour = "black") +
+  #geom_hline(yintercept=0.9) + 
+  #ggtitle("Means (95% bootstr. CIs)") +
+  theme(
+      legend.position = "none",
+      axis.title = element_text(size = 12),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      panel.grid = element_blank(),
+      axis.title.y = element_text(color = "white"), 
+      axis.text.y = element_text(color = "white")
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+  labs(x = "Observed singular case", y = "Confidence that C = 1 caused E = 1") +
+  scale_color_manual(name  ="High-strength comp.", labels=c("terminal path", "root path"), values=c("#005083", "#f0b64d")) +
+  #scale_colour_discrete(name  ="Diagnostic judgment", labels=c("correct", "incorrect")) +
+  theme(legend.position="top")
+  #theme(legend.position = c(0.2, 0.2),
+  #      legend.title = element_text(size = 8),
+  #      legend.text = element_text(size = 8),
+  #      legend.background = element_rect(fill=alpha("grey", 0.4)))
+
+
+#ggsave("human_jugments.pdf",width=5,height=4)
+```
+
+
+
+
+
+# Statistical Analyses
+
+## Descriptive Statistics
+```{r}
+#library(pastecs)
+by(tdata_attributions_long$value, list(tdata_attributions_long$variable, tdata_attributions_long$High_Strength_Component), stat.desc , basic = FALSE)
+
+#by(tdata2$DeltaP, list(tdata2$Conclusion), stat.desc , basic = FALSE)
+
+#tdata2<-subset(tdata2, tdata2[,5]!="-Inf") 
+#tdata2<-subset(tdata2, tdata2[,5]!="Inf") 
+#tdata2<-subset(tdata2, tdata2[,5]!="NaN") 
+
+#by(tdata2$Power, list(tdata2$Conclusion), stat.desc , basic = FALSE)
+
+
+```
+
+```{r}
+# compute correlation among repeated measures in each group 
+
+root <- subset(tdata_attributions, High_Strength_Component == "Root")
+terminal <- subset(tdata_attributions, High_Strength_Component == "Terminal")
+
+cor(root$`1_u_u_1`, root$`1_1_u_1`)
+
+cor(terminal$`1_u_u_1`, terminal$`1_1_u_1`)
+
+
+
+```
+
+```{r}
+library(afex)
+library(emmeans)
+
+a1 <- aov_car(value ~ High_Strength_Component*variable + Error(sID/(variable)), tdata_attributions_long)
+a1
+```
+
+
+```{r}
+# same ANOVA as before
+lmeModel <- lmer(value ~ High_Strength_Component*variable + (1|sID), data=tdata_attributions_long)
+
+# follow-up analysis 
+
+ls1 <- lsmeans(a1, c("variable", "High_Strength_Component")) # joint evaluation (basically gives the same table)
+ls1
+```
+
+
+```{r}
+############### 
+# a conditional analysis 
+
+ls2 <- lsmeans(a1, c("variable"), by = "High_Strength_Component") # group means by between-condition
+ls2
+
+# simple main effects 
+pairs(ls2) # compares rep-measure differences separately for each between-factor level
+
+# interaction contrast 
+pairs(pairs(ls2), by = NULL)
+
+#test(pairs(pairs(ls2), by = NULL), joint = TRUE) # This reproduces the F-Value of the ANOVA interaction
+
+
+#lsmip(a1, High_Strength_Component ~ variable) # lsemans can also produce graphs
+```
+
+
+```{r}
+# plot the interaction effect together with its 95% CI 
+
+t <- qt(0.975, 158, lower.tail = TRUE, log.p = FALSE)
+#t
+
+effect <- "Delta D"
+D_Mdiff <- 0.115
+SE <- 0.035
+CI <- SE*t
+CI_low <- D_Mdiff - CI
+CI_up <- D_Mdiff + CI
+
+DMdiff <- data.frame(effect, D_Mdiff, CI_low, CI_up)
+
+ggplot(DMdiff, aes(x=effect, y=D_Mdiff)) +
+    #coord_cartesian(ylim=c(-0.02,0.15)) +
+    #scale_y_continuous(limits = c(0,0.2), breaks=seq(0, 0.2, 0.1), expand = c(0,0)) +
+    #geom_line() +
+    geom_errorbar(width=.0, aes(ymin=DMdiff$CI_low, ymax=DMdiff$CI_up)) +
+    geom_point(shape=17, size=3, color = "black") +
+    #ylim(-0.02,0.2)+
+    scale_y_continuous(limits=c(-0.02, 0.8), breaks = seq(-0.02, 0.8, 0.2))+
+    geom_hline(yintercept=0, linetype="dashed", color = "red")+
+theme(
+      legend.position = "none",
+      axis.line.y = element_line(colour = "black"),
+      axis.title.x = element_blank(),
+      axis.ticks.y = element_line(color = "black"),
+      axis.ticks.x = element_blank(),
+      #axis.ticks.y = element_line(colour = "black"),
+      axis.text.x = element_text(size = 10, color = "black"),
+      axis.title.y = element_blank(),
+      axis.text.y = element_text(size = 12, color = "black"),
+      panel.grid = element_blank(),
+      panel.border = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )
+
+#ggsave("interaction.pdf",width=1,height=2)
+
+
+```
+
+
+
+
+```{r}
+# correlation between P(MA = 1) ratings and singular causation ratings (should be negative)
+rest <- subset(tdata, select = c(1:7))
+colnames(rest)<- c("sID", "High_Strength_Component", "Target", 
+                                   "Observation_Order", "1_1_u_1", "1_u_u_1", "diagnostic_judgment")
+
+rest_long <- melt(rest, id=c("sID", "High_Strength_Component", 
+                                                            "Target", "Observation_Order", "diagnostic_judgment"))
+
+rest_long$value <- (rest_long$value - 1) * 0.1
+
+rest_11u1 <- subset(rest_long, variable == "1_1_u_1")
+
+cor(rest_11u1$diagnostic_judgment, rest_11u1$value)
+
+cor.test(rest_11u1$diagnostic_judgment, rest_11u1$value)
+```
+
+
+
+
+
+
+
+
+
+
