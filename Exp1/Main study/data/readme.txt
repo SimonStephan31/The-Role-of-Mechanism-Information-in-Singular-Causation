@@ -1,3 +1,7 @@
+The file "Analysis_Exp1.Rmd" is the Markdown analysis script
+
+The file "Analysis_Exp1.html" is a knitted version of the analysis script (output)
+
 The file "Exp1_data.txt" contains the experimental raw data in wide format:
 
 The column "sID" denotes the subject identifiers
