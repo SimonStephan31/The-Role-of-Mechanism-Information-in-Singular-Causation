@@ -1,3 +1,7 @@
+The file "Exp3_Analysis.Rmd" is the R analysis script
+
+The file "Exp3_Analysis.html" is a knitted version of this script (output)
+
 The file "Exp3_data.txt" contains the experimental raw data in wide format:
 
 The column "sID" denotes the subject identifiers
