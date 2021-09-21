@@ -1,0 +1,1712 @@
+---
+title: "Analysis Exp1"
+author: Simon Stephan
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# packages
+library(ez)
+library(reshape2)
+library(reshape)
+library(ggplot2)
+library(plyr)
+library(pastecs)
+library(data.table)
+library(psych)
+library(showtext)
+
+font_add_google("Poppins", "Poppins") # some nicer fonts
+font_add_google("Roboto Mono", "Roboto Mono")
+showtext_auto()
+```
+
+# Read in experimental data and prepare them for analysis
+
+```{r}
+# read data 
+#tdata.wide <- read.delim("dummy_data.txt", header=TRUE, sep="\t", na.strings="NA", dec=".", strip.white=TRUE)
+tdata <- read.delim("Exp1_data.txt", header=TRUE, sep="\t", na.strings="NA", dec=".", strip.white=TRUE)
+```
+
+## Demographics
+```{r}
+mean(tdata$Age)
+sd(tdata$Age)
+
+
+colnames(tdata)[33] <- "Sex" # rename column listing subjects' sex
+table(tdata$Sex) # 1 = male, 2 = female, 3 = non-binary
+```
+
+```{r}
+# declare factors
+
+tdata$Target <- factor(tdata$Target, levels = c("west", "east"))
+
+tdata <- subset(tdata, select = c(1:30)) # select only the relevant variables
+
+# rename columns for better handling (1p = pony instead of tower, u = unknown, 0 = no event occurred)
+colnames(tdata)
+colnames(tdata)<- c("sID", "Target", "1_0_1_1p_1", "1_0_1_1t_1", "1_0_1_u_1", "1_1p_1_0_1", "1_1p_1_1p_1", "1_1p_1_1t_1", "1_1p_1_u_1", "1_1t_1_0_1",
+                    "1_1t_1_1p_1", "1_1t_1_1t_1", "1_1t_1_u_1", "1_u_1_0_1", "1_u_1_1p_1", "1_u_1_1t_1", "1_u_1_u_1", "u_0_1_1p_u", "u_0_1_1t_u", "u_0_1_u_u",
+                    "u_1p_1_0_u", "u_1p_1_1t_u", "u_1p_1_u_u", "u_1t_1_0_u", "u_1t_1_1p_u", "u_1t_1_u_u", "u_u_1_0_u", "u_u_1_1p_u", "u_u_1_1t_u", "u_u_1_u_u")
+
+
+tdata_long <- melt(tdata, id=c("sID", "Target"))
+
+tdata_long$variable <- factor(tdata_long$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",
+                                                              "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+                                                              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",
+                                                              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+                                                              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+# recode dependent variables (because Subj. answered on a 1 to 11 scale but we want 0 to 10)
+tdata_long$value <- (tdata_long$value - 1) * 0.1
+
+tdata_long["title"] <- c(rep("Human judgments", length(tdata_long)))
+
+#write.table(tdata_long, file = "tdata_final_long.txt", row.names=FALSE, sep="\t", quote=FALSE, append = FALSE)
+```
+
+# Include predictions of full generalized power model
+
+```{r}
+###############################################################
+
+## The causal model 
+
+
+#                {wcmc1;      {wmc1e;       {wma1e;      {wama1;
+#       bc        wcmc2}       wmc2e}        wma2e}       wama2;       ba
+#       -----> C --------> MC --------> E <-------- MA <-------- A <-----
+#            [0,1]      [0,1,2]       [0,1]      [0,1,2]       [0,1]
+
+###############################################################
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength of root causes (C and A) to activate their superior mechanism path (MC1 and MA1): Telegraphs in the exp. scenario
+wcmc1 <- 0.3
+wama1 <- wcmc1
+
+# strength of root causes (C and A) to activate their inferior mechanism path (MC2 and MA2): Pony riders in the exp. scenario
+wcmc2 <- 0.3
+wama2 <- wcmc2
+
+
+# strength of mechanism components, MC=1 and MA=1, and MC=2 and MA=2
+wmc1e <- 0.9 # the strong path
+wma1e <- wmc1e
+
+wmc2e <- 0.6 # the weak path
+wma2e <- wmc2e
+
+
+##### Alpha parameter
+
+# Alpha answers the following question: if both causes are simultaneously sufficient to activate the effect, what is the probability that the alternative cause was quicker than the target cause (preempted the target cause)?
+
+# The following assumptions are made: 
+
+# - for cases in which the mechanism components of both causes are observed and the active mechanism component of the target cause is the strong and quick component (the telegraph) while the active mechanism component of the alternative cause is the weak and slow component (the pony rider) (and both happen to be sufficiently strong), then the probability that the target cause was preempted by the alternative cause is 0.1. In the mirrored case, the probability is 0.9. If both mechanism components are identical (symmetrical cases), then it is unclear who acted quicker, and alpha is assumed to take on a value of 0.5.
+
+# alpha parameter in model 
+alpha_superior <- 0.1 # for x_1t_1_1p_x
+alpha_inferior <- 0.9 # for x_1p_1_1t_x
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 28 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_1t_1_0_1
+#  2) 1_1p_1_0_1
+#  3) 1_u_1_0_1
+#  4) u_1t_1_0_u
+#  5) u_1p_1_0_u
+#  6) u_u_1_0_u
+
+#  7) u_1t_1_u_u
+#  8) u_1p_1_u_u
+#  9) 1_1t_1_u_1
+# 10) 1_1t_1_1p_1
+# 11) u_1t_1_1p_1 
+# 12) 1_1p_1_u_1
+
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 17) 1_u_1_1p_1
+# 18) u_1p_1_1t_u
+# 19) 1_1p_1_1t_1 
+# 20) 1_u_1_1t_1
+# 21) u_u_1_1p_u
+# 22) u_u_1_1t_u
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+##################################################
+
+# function for generalized power model of singular causation judgments
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# I) First block of cases (cases 01 to 06):
+ 
+# In all these cases it is observed that the alternative cause failed to activate its mechanism 
+# It therefore must have been the target cause that generated the observed effect, because the strength of the alterantive cause is 0 in this case. 
+# The predicted values thus are 1.0 for all these cases.
+
+first_block <- rep(1,6)
+
+
+
+# II) Second block of cases (cases 07 to 12)
+
+# These are the computationally most demanding cases
+# In all cases, the target cause's mechanism (either telegraph or pony rider) is active
+# Since only the target cause can activate its mechanism, the target cause must have caused these mechanism
+# activations; hencce P(c->mc) = 1
+# we need to answer the question how likely it is that the target cause's active mechanism caused the
+# effect; we're looking for P(mc -> e|x); where "x" are the different givens in the different cases
+
+# The basic formula is: 
+ 
+# P(mc -> e|x) = (power of mc - power of mc * power of alternative * alpha)/P(e|mc, x)
+
+# 7) u_1t_1_u_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <-  ba * wama1 * alpha_symmetric + ba * wama2 * alpha_superior # average
+
+singular_7 <- generalized_model(power_target, power_alt, alpha)
+
+# 8) u_1p_1_u_u
+power_target <- wmc2e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <- ba * wama2 * alpha_symmetric + ba *  wama1 * alpha_inferior # average
+
+singular_8 <- generalized_model(power_target, power_alt, alpha)
+
+#  9) 1_1t_1_u_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama1 * alpha_symmetric + wama2 * alpha_superior # average
+
+singular_9 <- generalized_model(power_target, power_alt, alpha)
+
+# 10) 1_1t_1_1p_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_10 <- generalized_model(power_target, power_alt, alpha)
+
+# 11) u_1t_1_1p_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_11 <- generalized_model(power_target, power_alt, alpha)
+
+# 12) 1_1p_1_u_1
+power_target <- wmc2e # simply the determined link strength (this time pony instead of telegraph)
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama2 * alpha_symmetric + wama1 * alpha_inferior # average
+
+singular_12 <- generalized_model(power_target, power_alt, alpha)
+
+second_block <- c(singular_7, singular_8, singular_9, singular_10, singular_11, singular_12)
+
+
+# III) Third block of cases (cases 13 to 16)
+
+# These are the "symmetrical" cases for which the model predicts uncertainty (i.e., that it is 
+# equally likely that the target or the alternative cause generated the effect)
+
+third_block <- rep(0.5,4)
+
+
+# IV) Fourth block of cases (cases 17 to 22)
+
+# These cases are simply the mirrored cases of cases 07 to 12
+# The generalized model here therefore predicts: 1 - the predictions of cases 07 to 12
+# However, we below calculate the predictions using the parameters
+
+
+# 17) 1_u_1_1p_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma2e
+alpha <- wcmc2 * alpha_symmetric + wcmc1 * alpha_superior + (1-wcmc2-wcmc1) * 1 
+
+singular_17 <- generalized_model(power_target, power_alt, alpha)
+
+# 18) u_1p_1_1t_u
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_18 <- generalized_model(power_target, power_alt, alpha)
+
+# 19) 1_1p_1_1t_1 
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_19 <- generalized_model(power_target, power_alt, alpha)
+
+# 20) 1_u_1_1t_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <-  wcmc1 * alpha_symmetric + wcmc2 * alpha_inferior + (1-wcmc1-wcmc2) * 1
+
+singular_20 <- generalized_model(power_target, power_alt, alpha)
+
+# 21) u_u_1_1p_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma2e # average of the two paths
+alpha <- bc * wcmc2 * alpha_symmetric + bc * wcmc1 * alpha_superior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_21 <- generalized_model(power_target, power_alt, alpha)
+
+# 22) u_u_1_1t_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- bc * wcmc1 * alpha_symmetric + bc * wcmc2 * alpha_inferior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_22 <- generalized_model(power_target, power_alt, alpha)
+
+fourth_block <- c(singular_17, singular_18, singular_19, singular_20, singular_21, singular_22)
+
+
+# V) Fifth block of cases (cases 23 to 28)
+
+# These cases are simply the mirrored cases of the first block 
+# Since here the target cause fails to activate its mechanism, it cannot have caused the effect (the target cause's strength is 0)
+
+fifth_block <- rep(0,6)
+
+predictions <- c(first_block, second_block, third_block, fourth_block, fifth_block)
+predictions_fullModel <- predictions
+
+
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(predictions)
+
+title <- c(rep("Full generalized power model", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+# append predictions to the file containing experimental data 
+tdata_long_withPreds <- merge(tdata_long,preds,by="variable")
+tdata_long_withPreds <- subset(tdata_long_withPreds, select = c(1,2,4,6))
+colnames(tdata_long_withPreds) <- c("variable", "sID", "rating", "IdealGenPred")
+
+############# Plot the predictions and save them
+```
+
+
+```{r}
+theme_set(theme_bw(base_size = 16, base_family = "Poppins"))
+
+my_title <- expression(paste(bold("A"), " Full model"))
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle(my_title)+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+    scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    annotate(
+      "label", x = 24, y = 0.82, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "Overall model fit:\n r = .98\n 95% CI [.96, .99]  \n RMSE = 0.12"
+    )+
+    annotate(
+      "text", x = 5, y = 0.2, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = .96\n 95% CI [.65, 1.0]  \n RMSE = 0.14"
+    )+
+    annotate(
+      "text", x = 25, y = 0.3, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = .82\n 95% CI [.03, .98]  \n RMSE = 0.17"
+    )+
+  geom_curve(
+  aes(x = 9, y = 0.4, xend = 10, yend = 0.6),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = +0.2
+  )+
+  annotate(
+      "text", x = 5, y = 0.45, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 2:", alpha = 1
+    )+
+  geom_curve(
+  aes(x = 21.5, y = 0.5, xend = 20, yend = 0.4),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = 0.4
+  )+
+  annotate(
+      "text", x = 25, y = 0.5, family = "Poppins", size = 5.5, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 4:", alpha = 1
+    )
+g
+
+library(svglite)
+#ggsave(file="FullModel.svg", plot=g, width=8.5, height=5)
+#ggsave(file="FullModel.pdf", plot=g, width=8.5, height=5)
+```
+
+
+
+# Predictions of standard power model (model insensitive to preemption)
+
+```{r}
+###############################################################
+
+## The causal model 
+
+
+#                {wcmc1;      {wmc1e;       {wma1e;      {wama1;
+#       bc        wcmc2}       wmc2e}        wma2e}       wama2;       ba
+#       -----> C --------> MC --------> E <-------- MA <-------- A <-----
+#            [0,1]      [0,1,2]       [0,1]      [0,1,2]       [0,1]
+
+###############################################################
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength of root causes (C and A) to activate their superior mechanism path (MC1 and MA1): Telegraphs in the exp. scenario
+wcmc1 <- 0.3
+wama1 <- wcmc1
+
+# strength of root causes (C and A) to activate their inferior mechanism path (MC2 and MA2): Pony riders in the exp. scenario
+wcmc2 <- 0.3
+wama2 <- wcmc2
+
+
+# strength of mechanism components, MC=1 and MA=1, and MC=2 and MA=2
+wmc1e <- 0.9 # the strong path
+wma1e <- wmc1e
+
+wmc2e <- 0.6 # the weak path
+wma2e <- wmc2e
+
+
+
+##### Alpha parameter
+
+# Alpha answer the following question: if both causes are simultaneously sufficient to activate the effect, what is the probability that the alternative cause was quicker than the target cause (preempted the target cause)?
+
+# The standard power model does not consider the possibility of causal preemption. We can therefore set alpha to 0.
+
+# alpha parameter in model 
+alpha_superior <- 0 # for x_1t_1_1p_x
+alpha_inferior <- 0 # for x_1p_1_1t_x
+
+alpha_symmetric <- 0 # for x_u_1_u_x
+
+
+
+
+##### The 28 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_1t_1_0_1
+#  2) 1_1p_1_0_1
+#  3) 1_u_1_0_1
+#  4) u_1t_1_0_u
+#  5) u_1p_1_0_u
+#  6) u_u_1_0_u
+
+#  7) u_1t_1_u_u
+#  8) u_1p_1_u_u
+#  9) 1_1t_1_u_1
+# 10) 1_1t_1_1p_1
+# 11) u_1t_1_1p_1 
+# 12) 1_1p_1_u_1
+
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 17) 1_u_1_1p_1
+# 18) u_1p_1_1t_u
+# 19) 1_1p_1_1t_1 
+# 20) 1_u_1_1t_1
+# 21) u_u_1_1p_u
+# 22) u_u_1_1t_u
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+##################################################
+
+# function for standard power model of singular causation neglecting preemption (set alpha parameter to 0)
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# I) First block of cases (cases 01 to 06):
+ 
+# In all these cases it is observed that the alternative cause failed to activate its mechanism 
+# It therefore must have been the target cause that generated the observed effect
+
+first_block <- rep(1,6)
+
+
+
+# II) Second block of cases (cases 07 to 12)
+
+# These are the computationally most demanding cases
+# In all cases, the target cause's mechanism (either telegraph or pony rider) is active
+# Since only the target cause can activate its mechanism, the target cause must have caused these mechanism
+# activations; hencce P(c->mc) = 1
+# we need to answer the question how likely it is that the target cause's active mechanism caused the
+# effect; we're looking for P(mc -> e|x); where "x" are the different givens in the different cases
+
+# The basic formula is: 
+ 
+# P(mc -> e|x) = (power of mc - power of mc * power of alternative * alpha)/P(e|mc, x)
+
+# 7) u_1t_1_u_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <-  ba * wama1 * alpha_symmetric + ba *  wama2 * alpha_superior # average
+
+singular_7 <- generalized_model(power_target, power_alt, alpha)
+
+# 8) u_1p_1_u_u
+power_target <- wmc2e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <- ba * wama1 * alpha_symmetric + ba *  wama2 * alpha_superior # average
+
+singular_8 <- generalized_model(power_target, power_alt, alpha)
+
+#  9) 1_1t_1_u_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama1 * alpha_symmetric + wama2 * alpha_superior # average
+
+singular_9 <- generalized_model(power_target, power_alt, alpha)
+
+# 10) 1_1t_1_1p_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_10 <- generalized_model(power_target, power_alt, alpha)
+
+# 11) u_1t_1_1p_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_11 <- generalized_model(power_target, power_alt, alpha)
+
+# 12) 1_1p_1_u_1
+power_target <- wmc2e # simply the determined link strength (this time pony instead of telegraph)
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama1 * alpha_symmetric + wama2 * alpha_superior # average
+
+singular_12 <- generalized_model(power_target, power_alt, alpha)
+
+second_block <- c(singular_7, singular_8, singular_9, singular_10, singular_11, singular_12)
+
+
+
+# III) Third block of cases (cases 13 to 16)
+
+# These are the "symmetrical" cases for which the standard model does not predict uncertainty
+
+# 13) 1_u_1_u_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths
+alpha <- 0
+
+singular_13 <- generalized_model(power_target, power_alt, alpha)
+
+# 14) 1_1t_1_1t_1
+power_target <- wmc1e 
+power_alt <- wma1e
+alpha <- 0
+
+singular_14 <- generalized_model(power_target, power_alt, alpha)
+
+# 15) 1_1p_1_1p_1
+power_target <- wmc2e 
+power_alt <- wma2e
+alpha <- 0
+
+singular_15 <- generalized_model(power_target, power_alt, alpha)
+
+# 16) u_u_1_u_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e
+alpha <- 0
+
+singular_16 <- generalized_model(power_target, power_alt, alpha)
+
+third_block <- c(singular_13, singular_14, singular_15, singular_16)
+
+
+# IV) Fourth block of cases (cases 17 to 22)
+
+# These cases are simply the mirrored cases of cases 07 to 12
+# But, unlike the full model, the standard model does not predict 1 - xxx
+
+# 17) 1_u_1_1p_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma2e # average of the two paths
+alpha <- 0
+
+singular_17 <- generalized_model(power_target, power_alt, alpha)
+
+# 18) u_1p_1_1t_u
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- 0
+
+singular_18 <- generalized_model(power_target, power_alt, alpha)
+
+# 19) 1_1p_1_1t_1 
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- 0
+
+singular_19 <- generalized_model(power_target, power_alt, alpha)
+
+# 20) 1_u_1_1t_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- 0
+
+singular_20 <- generalized_model(power_target, power_alt, alpha)
+
+# 21) u_u_1_1p_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma2e # average of the two paths
+alpha <- 0
+
+singular_21 <- generalized_model(power_target, power_alt, alpha)
+
+# 22) u_u_1_1t_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- 0
+
+singular_22 <- generalized_model(power_target, power_alt, alpha)
+
+fourth_block <- c(singular_17, singular_18, singular_19, singular_20, singular_21, singular_22)
+
+# V) Fifth block of cases (cases 23 to 28)
+
+# These cases are simply the mirrored cases of the first block 
+# Since here the target cause fails to activate its mechanism, it cannot have caused the effect 
+
+fifth_block <- rep(0,6)
+
+predictions <- c(first_block, second_block, third_block, fourth_block, fifth_block)
+
+predictions_standardModel <- predictions
+
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(predictions)
+
+title <- c(rep("Standard power model", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+
+# append predictions to the file containing experimental data 
+tdata_long_withPreds <- merge(tdata_long_withPreds,preds,by="variable")
+tdata_long_withPreds <- subset(tdata_long_withPreds, select = c(1:5))
+colnames(tdata_long_withPreds) <- c("variable", "sID", "rating", "IdealGenPred", "StandardPred")
+
+############# Plot the predictions and save them
+```
+
+
+```{r}
+theme_set(theme_bw(base_size = 16, base_family = "Poppins"))
+
+my_title <- expression(paste(bold("B"), " Neglecting the possibility of causal preemption"))
+
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle(my_title)+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+  scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=1)+
+    annotate(
+      "label", x = 24, y = 0.82, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "Overall model fit:\n r = .95\n 95% CI [.89, .98]  \n RMSE = 0.18"
+    )+
+    annotate(
+      "text", x = 5, y = 0.2, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = .99\n 95% CI [.87, 1.0]  \n RMSE = 0.20"
+    )+
+    annotate(
+      "text", x = 14, y = 0.15, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = .43\n 95% CI [-.59, .92]  \n RMSE = 0.21"
+    )+
+  geom_curve(
+  aes(x = 9, y = 0.4, xend = 10, yend = 0.6),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = +0.2
+  )+
+  annotate(
+      "text", x = 5, y = 0.45, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 2:", alpha = 1
+    )+
+  geom_curve(
+  aes(x = 17.5, y = 0.3, xend = 19, yend = 0.45),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = 0.4
+  )+
+  annotate(
+      "text", x = 14, y = 0.35, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 4:", alpha = 1
+    )
+g
+
+#library(svglite)
+#ggsave(file="StandardModel.svg", plot=g, width=8.5, height=5)
+#ggsave(file="StandardModel.pdf", plot=g, width=8.5, height=5)
+```
+
+
+# Predictions of generalized power model insensitive to differences between mechanism components
+
+```{r}
+###############################################################
+
+## The causal model 
+
+
+#                {wcmc1;      {wmc1e;       {wma1e;      {wama1;
+#       bc        wcmc2}       wmc2e}        wma2e}       wama2;       ba
+#       -----> C --------> MC --------> E <-------- MA <-------- A <-----
+#            [0,1]      [0,1,2]       [0,1]      [0,1,2]       [0,1]
+
+###############################################################
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength of root causes (C and A) to activate their superior mechanism path (MC1 and MA1): Telegraphs in the exp. scenario
+wcmc1 <- 0.3
+wama1 <- wcmc1
+
+# strength of root causes (C and A) to activate their inferior mechanism path (MC2 and MA2): Pony riders in the exp. scenario
+wcmc2 <- 0.3
+wama2 <- wcmc2
+
+
+# strength of mechanism components, MC=1 and MA=1, and MC=2 and MA=2
+wmc1e <- 0.75 # telegraph in the scenario
+wma1e <- wmc1e
+
+wmc2e <- 0.75 # pony riders in the scenario
+wma2e <- wmc2e
+
+
+##### Alpha parameter
+
+# Alpha answer the following question: if both causes are simultaneously sufficient to activate the effect, what is the probability that the alternative cause was quicker than the target cause (preempted the target cause)?
+
+# The following assumptions are made: 
+
+# - for cases in which the mechanism components of both causes are observed and the active mechanism component of the target cause is the strong and quick component (the telegraph) while the active mechanism component of the alternative cause is the weak and slow component (the pony rider) (and both happen to be sufficiently strong), then the probability that the target cause was preempted by the alternative cause is 0.1. In the mirrored case, the probability is 0.9. If both mechanism components are identical (symmetrical cases), then it is unclear who acted quicker, and alpha is assumed to take on a value of 0.5.
+
+# alpha parameter in model 
+alpha_superior <- 0.5 # for x_1t_1_1p_x
+alpha_inferior <- 0.5 # for x_1p_1_1t_x
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 28 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_1t_1_0_1
+#  2) 1_1p_1_0_1
+#  3) 1_u_1_0_1
+#  4) u_1t_1_0_u
+#  5) u_1p_1_0_u
+#  6) u_u_1_0_u
+
+#  7) u_1t_1_u_u
+#  8) u_1p_1_u_u
+#  9) 1_1t_1_u_1
+# 10) 1_1t_1_1p_1
+# 11) u_1t_1_1p_1 
+# 12) 1_1p_1_u_1
+
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 17) 1_u_1_1p_1
+# 18) u_1p_1_1t_u
+# 19) 1_1p_1_1t_1 
+# 20) 1_u_1_1t_1
+# 21) u_u_1_1p_u
+# 22) u_u_1_1t_u
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+##################################################
+
+# function for generalized power model of singular causation 
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# I) First block of cases (cases 01 to 06):
+ 
+# In all these cases it is observed that the alternative cause failed to activate its mechanism 
+# It therefore must have been the target cause that generated the observed effect, because the strength of the alterantive cause is 0 in this case. 
+# The predicted values thus are 1.0 for all these cases.
+
+first_block <- rep(1,6)
+
+
+
+# II) Second block of cases (cases 07 to 12)
+
+# These are the computationally most demanding cases
+# In all cases, the target cause's mechanism (either telegraph or pony rider) is active
+# Since only the target cause can activate its mechanism, the target cause must have caused these mechanism
+# activations; hencce P(c->mc) = 1
+# we need to answer the question how likely it is that the target cause's active mechanism caused the
+# effect; we're looking for P(mc -> e|x); where "x" are the different givens in the different cases
+
+# The basic formula is: 
+ 
+# P(mc -> e|x) = (power of mc - power of mc * power of alternative * alpha)/P(e|mc, x)
+
+# 7) u_1t_1_u_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <-  ba * wama1 * alpha_symmetric + ba * wama2 * alpha_superior # average
+
+singular_7 <- generalized_model(power_target, power_alt, alpha)
+
+# 8) u_1p_1_u_u
+power_target <- wmc2e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <- ba * wama2 * alpha_symmetric + ba *  wama1 * alpha_inferior # average
+
+singular_8 <- generalized_model(power_target, power_alt, alpha)
+
+#  9) 1_1t_1_u_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama1 * alpha_symmetric + wama2 * alpha_superior # average
+
+singular_9 <- generalized_model(power_target, power_alt, alpha)
+
+# 10) 1_1t_1_1p_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_10 <- generalized_model(power_target, power_alt, alpha)
+
+# 11) u_1t_1_1p_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_11 <- generalized_model(power_target, power_alt, alpha)
+
+# 12) 1_1p_1_u_1
+power_target <- wmc2e # simply the determined link strength (this time pony instead of telegraph)
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama2 * alpha_symmetric + wama1 * alpha_inferior # average
+
+singular_12 <- generalized_model(power_target, power_alt, alpha)
+
+second_block <- c(singular_7, singular_8, singular_9, singular_10, singular_11, singular_12)
+
+
+# III) Third block of cases (cases 13 to 16)
+
+# These are the "symmetrical" cases for which the model predicts uncertainty (i.e., that it is 
+# equally likely that the target or the alternative cause generated the effect)
+
+third_block <- rep(0.5,4)
+
+
+# IV) Fourth block of cases (cases 17 to 22)
+
+# These cases are simply the mirrored cases of cases 07 to 12
+# The generalized model here therefore predicts: 1 - the predictions of cases 07 to 12
+# However, we below calculate the predictions using the parameters
+
+
+# 17) 1_u_1_1p_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma2e
+alpha <- wcmc2 * alpha_symmetric + wcmc1 * alpha_superior + (1-wcmc2-wcmc1) * 1 
+
+singular_17 <- generalized_model(power_target, power_alt, alpha)
+
+# 18) u_1p_1_1t_u
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_18 <- generalized_model(power_target, power_alt, alpha)
+
+# 19) 1_1p_1_1t_1 
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_19 <- generalized_model(power_target, power_alt, alpha)
+
+# 20) 1_u_1_1t_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <-  wcmc1 * alpha_symmetric + wcmc2 * alpha_inferior + (1-wcmc1-wcmc2) * 1
+
+singular_20 <- generalized_model(power_target, power_alt, alpha)
+
+# 21) u_u_1_1p_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma2e # average of the two paths
+alpha <- bc * wcmc2 * alpha_symmetric + bc * wcmc1 * alpha_superior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_21 <- generalized_model(power_target, power_alt, alpha)
+
+# 22) u_u_1_1t_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- bc * wcmc1 * alpha_symmetric + bc * wcmc2 * alpha_inferior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_22 <- generalized_model(power_target, power_alt, alpha)
+
+fourth_block <- c(singular_17, singular_18, singular_19, singular_20, singular_21, singular_22)
+
+
+# V) Fifth block of cases (cases 23 to 28)
+
+# These cases are simply the mirrored cases of the first block 
+# Since here the target cause fails to activate its mechanism, it cannot have caused the effect (the target cause's strength is 0)
+
+fifth_block <- rep(0,6)
+
+predictions <- c(first_block, second_block, third_block, fourth_block, fifth_block)
+predictions_neglectingMechDiffs <- predictions
+
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(predictions)
+
+title <- c(rep("Full generalized power model", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+
+tdata_long_withPreds <- merge(tdata_long_withPreds,preds,by="variable")
+tdata_long_withPreds <- subset(tdata_long_withPreds, select = c(1:6))
+colnames(tdata_long_withPreds) <- c("variable", "sID", "rating", "IdealGenPred", "StandardPred", "NoMechDiffsPred")
+
+
+############# Plot the predictions and save them
+```
+
+
+```{r}
+theme_set(theme_bw(base_size = 16, base_family = "Poppins"))
+
+my_title <- expression(paste(bold("C"), " Neglecting differences between mechanism paths"))
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle(my_title)+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+   scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    annotate(
+      "label", x = 24, y = 0.82, family = "Poppins", size = 6, lineheight = 1.2,
+      label = "Overall model fit:\n r = .96\n 95% CI [.91, .98]  \n RMSE = 0.12"
+    )+
+    annotate(
+      "text", x = 5, y = 0.15, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = -.30\n 95% CI [-.89, .68]  \n RMSE = 0.16"
+    )+
+    annotate(
+      "text", x = 25, y = 0.25, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "r = .05\n 95% CI [-.79, .82]  \n RMSE = 0.15"
+    )+
+  geom_curve(
+  aes(x = 8.5, y = 0.35, xend = 10, yend = 0.4),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = +0.2
+  )+
+  annotate(
+      "text", x = 5, y = 0.4, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 2:", alpha = 1
+    )+
+  geom_curve(
+  aes(x = 21.5, y = 0.5, xend = 20.5, yend = 0.45),
+  data = preds,
+  arrow = arrow(length = unit(0.03, "npc")),
+  color = "black", curvature = +0.2
+  )+
+  annotate(
+      "text", x = 25, y = 0.5, family = "Poppins", size = 6, color = "black", lineheight = 1.2,
+      label = "local model fit\n in Segment 4:", alpha = 1
+    )
+g
+
+#library(svglite)
+#ggsave(file="MechInsensitiveModel.svg", plot=g, width=8.5, height=5)
+#ggsave(file="MechInsensitiveModel.pdf", plot=g, width=8.5, height=5)
+```
+
+## Random Choice model
+
+```{r}
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(0.5,0.5,0.5,0.5,0.5,0.5,
+           0.5,0.5,0.5,0.5,0.5,0.5,
+           0.5,0.5,0.5,0.5,
+           0.5,0.5,0.5,0.5,0.5,0.5,
+           0.5,0.5,0.5,0.5,0.5,0.5)
+
+predictions_randomChoice <- value
+
+title <- c(rep("Focus only on target cause path", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+theme_set(theme_light(base_size = 12, base_family = "Poppins"))
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle("Random Choice")+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 12),
+      axis.text.x = element_blank(),
+      panel.grid = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=1)
+g
+
+#library(svglite)
+#ggsave(file="RandomChoice.svg", plot=g, width=8, height=4)
+#ggsave(file="RandomChoice.pdf", plot=g, width=8, height=4)
+
+
+tdata_long_withPreds <- merge(tdata_long_withPreds,preds,by="variable")
+tdata_long_withPreds <- subset(tdata_long_withPreds, select = c(1:8))
+colnames(tdata_long_withPreds) <- c("variable", "sID", "rating", "IdealGenPred", "StandardPred", "NoMechDiffsPred", "RandomChoicePred")
+
+#write.table(tdata_long_withPreds, file = "tdata_final_long_with_Preds.txt", row.names=FALSE, sep="\t", quote=FALSE, append = FALSE)
+```
+
+
+# Analysis of experimental data
+
+## Graph 
+
+```{r}
+############# Plot the means and save them
+theme_set(theme_bw(base_size = 16, base_family = "Poppins"))
+
+my_title <- expression(paste(bold("D"), " Singular causation judgments"))
+
+g <- 
+  ggplot(tdata_long, aes(x=variable, y=value)) +
+    ggtitle(my_title)+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+  scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar", position = position_dodge(width = 0.90), width = 0, size = 0.5) +
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    stat_summary(aes(y = value,group=1), fun.y = median, geom = "point", shape = 3, size = 1, fill = "red", alpha = 0.7, position =
+                 position_dodge(width = 0.90), colour = "black") +
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=1)
+g
+
+#library(svglite)
+#ggsave(file="MeanHumanJudgments.svg", plot=g, width=8.5, height=5)
+#ggsave(file="MeanHumanJudgments.pdf", plot=g, width=8.5, height=5)
+```
+
+## Analyze local trends and pattersn 
+
+is the last rating in segment 1 different from all the others?
+
+```{r}
+segment1 <- subset(tdata_long, variable == "1_1t_1_0_1" | variable == "1_1p_1_0_1" | variable == "1_u_1_0_1" | 
+                     variable == "u_1t_1_0_u" | variable == "u_1p_1_0_u" | variable == "u_u_1_0_u")
+
+segment1$six_vs_rest[segment1$variable=="u_u_1_0_u"] <- "sixth"
+segment1$six_vs_rest[segment1$variable!="u_u_1_0_u"] <- "rest"
+```
+
+
+```{r}
+library(afex)
+library(lsmeans)
+library(dplyr)
+a1 <- aov_car(value ~ six_vs_rest + Error(sID/(six_vs_rest)), segment1)
+a1
+
+lsmeans(a1, c("six_vs_rest"))
+
+
+emm1 = emmeans(a1, specs = pairwise ~ six_vs_rest, adjust = "none")
+emm1
+
+emm1$contrasts %>%
+     confint()
+
+```
+
+Is the first mean in the last segment different from all the others?
+
+
+```{r}
+segment5 <- subset(tdata_long, variable == "u_0_1_u_u" | variable == "u_0_1_1p_u" | variable == "u_0_1_1t_u" | 
+                     variable == "1_0_1_u_1" | variable == "1_0_1_1p_1" | variable == "1_0_1_1t_1")
+
+segment5$tw3_vs_rest[segment5$variable=="u_0_1_u_u"] <- "23rd"
+segment5$tw3_vs_rest[segment5$variable!="u_0_1_u_u"] <- "rest"
+```
+
+
+```{r}
+a1 <- aov_car(value ~ tw3_vs_rest + Error(sID/(tw3_vs_rest)), segment5)
+a1
+
+lsmeans(a1, c("tw3_vs_rest"))
+
+
+emm1 = emmeans(a1, specs = pairwise ~ tw3_vs_rest, adjust = "none")
+emm1
+
+emm1$contrasts %>%
+     confint()
+
+```
+
+Now the predicted u-shpaed trends, are they reliably different from chance?
+
+Segment 2:
+
+"u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1"
+
+```{r}
+U1 <- subset(tdata_long, variable == "u_1t_1_u_u" | variable == "u_1p_1_u_u" | variable == "1_1t_1_u_1")
+```
+
+```{r}
+a1 <- aov_car(value ~ variable + Error(sID/(variable)), U1)
+a1
+
+lsmeans(a1, c("variable"))
+
+
+emm1 = emmeans(a1, specs = poly ~ variable, adjust = "none")
+emm1
+
+emm1$contrasts %>%
+     confint()
+
+```
+
+
+Segment 4:
+
+"1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u"
+
+```{r}
+U4 <- subset(tdata_long, variable == "1_u_1_1t_1" | variable == "u_u_1_1p_u" | variable == "u_u_1_1t_u")
+```
+
+```{r}
+a1 <- aov_car(value ~ variable + Error(sID/(variable)), U4)
+a1
+
+lsmeans(a1, c("variable"))
+
+
+emm1 = emmeans(a1, specs = poly ~ variable, adjust = "none")
+emm1
+
+emm1$contrasts %>%
+     confint()
+```
+
+```{r}
+# show jitter and individuals changes
+tdata_long$title2 <- rep("Human singular causation judgments")
+
+## first, turn sID into a factor
+tdata_long$sID <- factor(tdata_long$sID)
+
+pd <- position_dodge(width = 0.3)
+
+tdata_long$valueJitter <- jitter(tdata_long$value, factor = 1, amount = 0.05)
+
+theme_set(theme_light(base_size = 12, base_family = "Poppins"))
+
+
+g <- ggplot(tdata_long, aes(variable, valueJitter, group = sID)) +
+  #ggtitle("Singular ratings, means with 95% CI (black), median (red) ")+
+  #facet_grid(. ~ title2)+
+  #geom_jitter(width = 0.15, alpha = 0.3)+
+  geom_line(position = pd, alpha=0.1, color = "#3182bd", size = 1) +
+  #geom_point(position = pd, alpha = 0.3, color = "#3182bd") +
+  #stat_summary(aes(y = value,group=1), fun.data = mean_cl_boot, geom = "errorbar", 
+  #             position = position_dodge(width = 0.90), width = 0, size = 1, color = "black") +
+  stat_summary(aes(y = value,group=1), fun.data = mean_cl_boot, geom = "ribbon", fill = "black", alpha = 0.4) +
+  #stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 2)+
+  #stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", shape = 22, size = 3, group=1)+
+  #stat_summary(aes(y = value,group=1), fun.y = median, geom = "point", shape = 24, size = 3, fill = "red", alpha = 0.5, position =
+  #               position_dodge(width = 0.90), colour = "black") +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", position = position_dodge(width = 0.90), width = 0, size = 0.5) +
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+  labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 12),
+      axis.text.x = element_blank(),
+      panel.grid = element_blank(),
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=1)
+
+g
+
+#library(svglite)
+#ggsave(file="IndividualJudgments.svg", plot=g, width=8, height=4)
+#ggsave(file="IndividualJudgments.pdf", plot=g, width=8, height=4)
+```
+
+
+## Model cluster
+
+```{r}
+
+data_cluster <- tdata_long_withPreds
+
+# append absolut deviations as new columns
+data_cluster$Delta_Rating_IdealGenM <- abs(data_cluster$rating - data_cluster$IdealGenPred)
+data_cluster$Delta_Rating_SimpleGenM <- abs(data_cluster$rating - data_cluster$NoMechDiffsPred)
+data_cluster$Delta_Rating_StandardM <- abs(data_cluster$rating - data_cluster$StandardPred)
+data_cluster$Delta_Rating_RandomSelM <- abs(data_cluster$rating - data_cluster$RandomChoicePred)
+
+# subset containing only the deviations
+data_cluster <- subset(data_cluster, select = c(1:2,9:12))
+
+# mean absolute deviations for each participant
+data_cluster$meanDev_IdealGenM <- tapply(data_cluster$Delta_Rating_IdealGenM, data_cluster$sID, mean)
+data_cluster$meanDev_SimpleGenM <- tapply(data_cluster$Delta_Rating_SimpleGenM, data_cluster$sID, mean)
+data_cluster$meanDev_StandardM <- tapply(data_cluster$Delta_Rating_StandardM, data_cluster$sID, mean)
+data_cluster$meanDev_RandomSelM <- tapply(data_cluster$Delta_Rating_RandomSelM, data_cluster$sID, mean)
+
+data_cluster <- subset(data_cluster, select = c(1:2, 7:10))
+
+# get the minimum deviation for each subject
+data_cluster$Dev_Min <- apply(data_cluster[, c(3:6)], 1, FUN=min)
+
+# now take the minimum to assign each subject to a cluter 
+data_cluster$Cluster <- c(1:length(data_cluster$sID))
+
+data_cluster$Cluster[data_cluster$Dev_Min==data_cluster$meanDev_IdealGenM] <- "IdealGenM"
+data_cluster$Cluster[data_cluster$Dev_Min==data_cluster$meanDev_SimpleGenM] <- "SimpleGenM"
+data_cluster$Cluster[data_cluster$Dev_Min==data_cluster$meanDev_StandardM] <- "StandardM"
+data_cluster$Cluster[data_cluster$Dev_Min==data_cluster$meanDev_RandomSelM] <- "RandomSelM"
+
+n_in_cluster <- subset(data_cluster, variable == "1_0_1_1p_1")
+
+count(n_in_cluster, c("Cluster"))
+table(n_in_cluster$Cluster)
+
+
+# now append the clustering results to the main data frame 
+data_cluster <- subset(data_cluster, select = c(1:2,8))
+
+tdata_long_with_cluster <- merge(tdata_long, data_cluster, by = c("sID", "variable"))
+tdata_long_with_cluster$title2 <- rep("Human singular causation judgments clustered")
+
+tdata_long_with_cluster$Cluster <- factor(tdata_long_with_cluster$Cluster, levels = c("IdealGenM", "SimpleGenM", "RandomSelM"))
+```
+
+## Plot the clusters 
+
+```{r}
+
+theme_set(theme_bw(base_size = 16, base_family = "Poppins"))
+
+
+my_title <- expression(paste(bold("f"), " Clustered singular causation judgments"))
+
+g <- ggplot(tdata_long_with_cluster, aes(variable, valueJitter, group = sID, color = Cluster)) +
+  ggtitle(my_title)+
+  #facet_grid(. ~ title2)+
+  #geom_jitter(width = 0.15, alpha = 0.3)+
+  geom_line(position = pd, alpha=0.1, size = 1) +
+  geom_point(position = pd, alpha = 0.1) +
+  #stat_summary(aes(y = value, group = Cluster), fun.data = mean_cl_boot, geom = "errorbar", width = 0, size = 0.5, color = "black") +
+  stat_summary(aes(y = value, color = Cluster, group = Cluster), fun.y=mean, geom="line", size = 1.5, linetype = "solid", alpha = 0.9)+
+  stat_summary(aes(y = value, group=Cluster, fill = Cluster), fun.y=mean, colour="black", geom="point", shape = 21, size = 3, alpha = 0.7)+
+  #stat_summary(aes(y = value,group=Model, fill = Model), fun.y = median, geom = "point", shape = 24, size = 3, alpha = 0.5, 
+  #             position = position_dodge(width = 0.90), colour = "black") +
+  scale_y_continuous("Confidence that C = 1 caused E = 1", breaks = seq(0,1,0.25), expand = c(0,0)) +
+  scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+  #scale_colour_brewer(name  ="Model cluster", labels=c("Full Model: 50%", "Neglecting Mech. Diffs: 40%","Random Choice: 10%"),
+  #                      palette = "Accent") +
+  #scale_fill_brewer(name  ="Model cluster", labels=c("Full Model: 50%", "Neglecting Mech. Diffs: 40%","Random Choice: 10%"),
+  #                      palette = "Accent") +
+  scale_colour_manual(name  ="Model cluster:", labels=c("Full Model: 50%", "Neglecting Mech. Diffs: 40%","Random Choice: 10%"),
+                        values = c("#F8766D","#619CFF","#00BA38")) +
+  scale_fill_manual(name  ="Model cluster:", labels=c("Full Model: 50%", "Neglecting Mech. Diffs: 40%","Random Choice: 10%"),
+                        values = c("#F8766D","#619CFF","#00BA38")) +
+  labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = c(0.73, 0.81),
+      legend.box.background = element_rect(colour = "black"),
+      legend.title = element_text(size = 18),
+      legend.text = element_text(size = 17),
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=1)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=1)
+g
+
+#library(svglite)
+#ggsave(file="IndividualJudgmentsClusterLegendInside.svg", plot=g, width=8.5, height=5)
+#ggsave(file="IndividualJudgmentsClusterLegendInside.pdf", plot=g, width=8.5, height=5)
+```
+
+
+
+## Descriptive Statistics
+```{r}
+library(pastecs)
+descriptives <- by(tdata_long$value, list(tdata_long$variable), stat.desc , basic = FALSE)
+descriptives
+#by(tdata2$DeltaP, list(tdata2$Conclusion), stat.desc , basic = FALSE)
+
+#tdata2<-subset(tdata2, tdata2[,5]!="-Inf") 
+#tdata2<-subset(tdata2, tdata2[,5]!="Inf") 
+#tdata2<-subset(tdata2, tdata2[,5]!="NaN") 
+
+#by(tdata2$Power, list(tdata2$Conclusion), stat.desc , basic = FALSE)
+
+```
+
+## mean standard deviation across cases
+### overall
+```{r}
+library(plyr)
+sd <- ddply(tdata_long, .(variable), function(x) sd(x$value) )
+#fullModel_Cluster_Means
+
+mean(sd$V1)
+```
+
+### segements 2 and 4
+
+```{r}
+sd_seg2 <- ddply(tdata_long, .(variable), function(x) sd(x$value) )
+#fullModel_Cluster_Means
+
+mean(sd_seg2$V1[7:12])
+
+sd_seg4 <- ddply(tdata_long, .(variable), function(x) sd(x$value) )
+#fullModel_Cluster_Means
+
+mean(sd_seg4$V1[17:22])
+```
+
+
+
+## Correlation between models and mean ratings 
+
+```{r}
+RMSE = function(m, o){
+  sqrt(mean((m - o)^2))
+}
+
+means <- c(0.91400000,0.90100000,0.89900000,0.90600000,0.90400000,0.83500000,
+           0.72200000,0.66400000,0.73500000,0.71200000,0.71600000,0.63500000,
+           0.498000000,0.504000000,0.493000000,0.492000000,
+           0.35800000,0.32100000,0.32500000,0.28400000,0.35900000,0.27800000,
+           0.11900000,0.06300000,0.06800000,0.12100000,0.08100000,0.08400000)
+
+
+GeneralizedPowerModel <- predictions_fullModel
+
+InsensitiveGeneralizedPowerModel <- predictions_neglectingMechDiffs
+
+StandardPowerModel <- predictions_standardModel
+
+cor.test(GeneralizedPowerModel, means)
+RMSE(GeneralizedPowerModel, means) # Root mean squared error: rmse = sqrt( mean( (sim - obs)^2, na.rm = TRUE) )
+
+cor.test(StandardPowerModel, means)
+RMSE(StandardPowerModel, means)
+
+cor.test(InsensitiveGeneralizedPowerModel, means)
+RMSE(InsensitiveGeneralizedPowerModel, means)
+```
+
+Next we analyze local correlations/ model fits
+
+```{r}
+# second segment 
+means <- c(0.72200000,0.66400000,0.73500000,0.71200000,0.71600000,0.63500000)
+
+GeneralizedPowerModel <- predictions_fullModel[7:12]
+
+InsensitiveGeneralizedPowerModel <- predictions_neglectingMechDiffs[7:12]
+
+StandardPowerModel <- predictions_standardModel[7:12]
+
+
+cor.test(GeneralizedPowerModel, means)
+RMSE(GeneralizedPowerModel, means)
+
+cor.test(StandardPowerModel, means)
+RMSE(StandardPowerModel, means)
+
+cor.test(InsensitiveGeneralizedPowerModel, means)
+RMSE(InsensitiveGeneralizedPowerModel, means)
+```
+
+```{r}
+# fourth segment 
+means <- c(0.35800000,0.32100000,0.32500000,0.28400000,0.35900000,0.27800000)
+
+GeneralizedPowerModel <- predictions_fullModel[17:22]
+
+InsensitiveGeneralizedPowerModel <- predictions_neglectingMechDiffs[17:22]
+
+StandardPowerModel <- predictions_standardModel[17:22]
+
+
+
+
+cor.test(GeneralizedPowerModel, means)
+RMSE(GeneralizedPowerModel, means) 
+
+cor.test(StandardPowerModel, means)
+RMSE(StandardPowerModel, means)
+
+cor.test(InsensitiveGeneralizedPowerModel, means)
+RMSE(InsensitiveGeneralizedPowerModel, means)
+
+```
+
+
+# Model fits for the clusters
+
+## full model 
+
+### overall fit
+```{r}
+fullModel_cluster <- subset(tdata_long_with_cluster, Cluster == "IdealGenM")
+
+library(plyr)
+fullModel_Cluster_Means <- ddply(fullModel_cluster, .(variable), function(x) mean(x$value) )
+#fullModel_Cluster_Means
+
+means <- fullModel_Cluster_Means$V1
+
+cor.test(predictions_fullModel, means)
+RMSE(predictions_fullModel, means)
+```
+
+### local fits
+
+```{r}
+#means <- fullModel_Cluster_Means$V1[7:12]
+
+# 2nd Segment
+cor.test(predictions_fullModel[7:12], means[7:12])
+RMSE(predictions_fullModel[7:12], means[7:12])
+
+# 4th Segment
+cor.test(predictions_fullModel[17:22], means[17:22])
+RMSE(predictions_fullModel[17:22], means[17:22])
+```
+
+## model neglecting mechanism differences
+
+### overall fit
+```{r}
+NoMechDiffModel_cluster <- subset(tdata_long_with_cluster, Cluster == "SimpleGenM")
+
+library(plyr)
+NoMechDiffModel_Cluster_Means <- ddply(NoMechDiffModel_cluster, .(variable), function(x) mean(x$value) )
+#fullModel_Cluster_Means
+
+means <- NoMechDiffModel_Cluster_Means$V1
+
+cor.test(predictions_neglectingMechDiffs, means)
+RMSE(predictions_neglectingMechDiffs, means)
+```
+
+### local fits
+
+```{r}
+#means <- fullModel_Cluster_Means$V1[7:12]
+
+# 2nd Segment
+cor.test(predictions_neglectingMechDiffs[7:12], means[7:12])
+RMSE(predictions_neglectingMechDiffs[7:12], means[7:12])
+
+# 4th Segment
+cor.test(predictions_neglectingMechDiffs[17:22], means[17:22])
+RMSE(predictions_neglectingMechDiffs[17:22], means[17:22])
+```
+
+
