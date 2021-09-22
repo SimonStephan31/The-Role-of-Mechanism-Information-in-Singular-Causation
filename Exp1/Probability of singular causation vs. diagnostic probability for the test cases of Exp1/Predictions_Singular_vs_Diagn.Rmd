@@ -1,0 +1,660 @@
+---
+title: "Predictions of Singular Causation and Diagnostic Probability for Experiment 01"
+author: Simon Stephan
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# packages
+library(ez)
+library(reshape2)
+library(reshape)
+library(ggplot2)
+library(plyr)
+library(pastecs)
+library(data.table)
+library(psych)
+library(showtext)
+
+font_add_google("Poppins", "Poppins")
+font_add_google("Roboto Mono", "Roboto Mono")
+showtext_auto()
+```
+
+
+# Background 
+
+An interesting question raised by an anonymous reviewer was whether subjects could simply have answered our singular causation questions with an estimation of the diagnostic probability of the target cause's presence, given by $P(c| givens)$. In this Markdown File, we therefore provide the diagnostic probabilities (Figure B below) for our 28 test cases of Experiment 1 and pit them against the predictions of singular causation (Figure A below). To see how the diagnostic probabilities can be obtained based on the parameters a given causal model, a useful reference is the paper by Meder, Mayrhofer and Waldmann (2014): "Structure Induction in Diagnostic Causal Reasoning". 
+
+
+# Predictions of singular causation made by full generalized power model
+
+```{r}
+###############################################################
+
+## The causal model 
+
+
+#                {wcmc1;      {wmc1e;       {wma1e;      {wama1;
+#       bc        wcmc2}       wmc2e}        wma2e}       wama2;       ba
+#       -----> C --------> MC --------> E <-------- MA <-------- A <-----
+#            [0,1]      [0,1,2]       [0,1]      [0,1,2]       [0,1]
+
+###############################################################
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength of root causes (C and A) to activate their superior mechanism path (MC1 and MA1): Telegraphs in the exp. scenario
+wcmc1 <- 0.3
+wama1 <- wcmc1
+
+# strength of root causes (C and A) to activate their inferior mechanism path (MC2 and MA2): Pony riders in the exp. scenario
+wcmc2 <- 0.3
+wama2 <- wcmc2
+
+
+# strength of mechanism components, MC=1 and MA=1, and MC=2 and MA=2
+wmc1e <- 0.9 # the strong path
+wma1e <- wmc1e
+
+wmc2e <- 0.6 # the weak path
+wma2e <- wmc2e
+
+
+##### Alpha parameter
+
+# Alpha answers the following question: if both causes are simultaneously sufficient to activate the effect, what is the probability that the alternative cause was quicker than the target cause (preempted the target cause)?
+
+# The following assumptions are made: 
+
+# - for cases in which the mechanism components of both causes are observed and the active mechanism component of the target cause is the strong and quick component (the telegraph) while the active mechanism component of the alternative cause is the weak and slow component (the pony rider) (and both happen to be sufficiently strong), then the probability that the target cause was preempted by the alternative cause is 0.1. In the mirrored case, the probability is 0.9. If both mechanism components are identical (symmetrical cases), then it is unclear who acted quicker, and alpha is assumed to take on a value of 0.5.
+
+# alpha parameter in model 
+alpha_superior <- 0.1 # for x_1t_1_1p_x
+alpha_inferior <- 0.9 # for x_1p_1_1t_x
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 28 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_1t_1_0_1
+#  2) 1_1p_1_0_1
+#  3) 1_u_1_0_1
+#  4) u_1t_1_0_u
+#  5) u_1p_1_0_u
+#  6) u_u_1_0_u
+
+#  7) u_1t_1_u_u
+#  8) u_1p_1_u_u
+#  9) 1_1t_1_u_1
+# 10) 1_1t_1_1p_1
+# 11) u_1t_1_1p_1 
+# 12) 1_1p_1_u_1
+
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 17) 1_u_1_1p_1
+# 18) u_1p_1_1t_u
+# 19) 1_1p_1_1t_1 
+# 20) 1_u_1_1t_1
+# 21) u_u_1_1p_u
+# 22) u_u_1_1t_u
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+##################################################
+
+# function for generalized power model of singular causation judgments
+
+generalized_model <- function(target_power, alternative_power, alpha) 
+{
+  # formula 
+  (target_power - target_power * alternative_power * alpha)/(target_power + alternative_power - target_power * alternative_power)
+}
+
+# I) First block of cases (cases 01 to 06):
+ 
+# In all these cases it is observed that the alternative cause failed to activate its mechanism 
+# It therefore must have been the target cause that generated the observed effect, because the strength of the alterantive cause is 0 in this case. 
+# The predicted values thus are 1.0 for all these cases.
+
+first_block <- rep(1,6)
+
+
+
+# II) Second block of cases (cases 07 to 12)
+
+# These are the computationally most demanding cases
+# In all cases, the target cause's mechanism (either telegraph or pony rider) is active
+# Since only the target cause can activate its mechanism, the target cause must have caused these mechanism
+# activations; hencce P(c->mc) = 1
+# we need to answer the question how likely it is that the target cause's active mechanism caused the
+# effect; we're looking for P(mc -> e|x); where "x" are the different givens in the different cases
+
+# The basic formula is: 
+ 
+# P(mc -> e|x) = (power of mc - power of mc * power of alternative * alpha)/P(e|mc, x)
+
+# 7) u_1t_1_u_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <-  ba * wama1 * alpha_symmetric + ba * wama2 * alpha_superior # average
+
+singular_7 <- generalized_model(power_target, power_alt, alpha)
+
+# 8) u_1p_1_u_u
+power_target <- wmc2e # simply the determined link strength of the active link
+power_alt <- ba * wama1 * wma1e + ba * wama2 * wma2e # average of the two paths
+alpha <- ba * wama2 * alpha_symmetric + ba *  wama1 * alpha_inferior # average
+
+singular_8 <- generalized_model(power_target, power_alt, alpha)
+
+#  9) 1_1t_1_u_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama1 * alpha_symmetric + wama2 * alpha_superior # average
+
+singular_9 <- generalized_model(power_target, power_alt, alpha)
+
+# 10) 1_1t_1_1p_1
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_10 <- generalized_model(power_target, power_alt, alpha)
+
+# 11) u_1t_1_1p_u
+power_target <- wmc1e # simply the determined link strength of the active link
+power_alt <- wma2e # simply the determined link strength of A's active link (strength of pony riders)
+alpha <-  alpha_superior # preemptive advantage for the target path (telegraph vs. pony rider)
+
+singular_11 <- generalized_model(power_target, power_alt, alpha)
+
+# 12) 1_1p_1_u_1
+power_target <- wmc2e # simply the determined link strength (this time pony instead of telegraph)
+power_alt <- wama1 * wma1e + wama2 * wma2e # average of the two paths (base rate can be neglected, because A is present)
+alpha <-  wama2 * alpha_symmetric + wama1 * alpha_inferior # average
+
+singular_12 <- generalized_model(power_target, power_alt, alpha)
+
+second_block <- c(singular_7, singular_8, singular_9, singular_10, singular_11, singular_12)
+
+
+# III) Third block of cases (cases 13 to 16)
+
+# These are the "symmetrical" cases for which the model predicts uncertainty (i.e., that it is 
+# equally likely that the target or the alternative cause generated the effect)
+
+third_block <- rep(0.5,4)
+
+
+# IV) Fourth block of cases (cases 17 to 22)
+
+# These cases are simply the mirrored cases of cases 07 to 12
+# The generalized model here therefore predicts: 1 - the predictions of cases 07 to 12
+# However, we below calculate the predictions using the parameters
+
+
+# 17) 1_u_1_1p_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma2e
+alpha <- wcmc2 * alpha_symmetric + wcmc1 * alpha_superior + (1-wcmc2-wcmc1) * 1 
+
+singular_17 <- generalized_model(power_target, power_alt, alpha)
+
+# 18) u_1p_1_1t_u
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_18 <- generalized_model(power_target, power_alt, alpha)
+
+# 19) 1_1p_1_1t_1 
+power_target <- wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- alpha_inferior
+
+singular_19 <- generalized_model(power_target, power_alt, alpha)
+
+# 20) 1_u_1_1t_1
+power_target <- wcmc1 * wmc1e + wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <-  wcmc1 * alpha_symmetric + wcmc2 * alpha_inferior + (1-wcmc1-wcmc2) * 1
+
+singular_20 <- generalized_model(power_target, power_alt, alpha)
+
+# 21) u_u_1_1p_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma2e # average of the two paths
+alpha <- bc * wcmc2 * alpha_symmetric + bc * wcmc1 * alpha_superior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_21 <- generalized_model(power_target, power_alt, alpha)
+
+# 22) u_u_1_1t_u
+power_target <- bc * wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+power_alt <- wma1e # average of the two paths
+alpha <- bc * wcmc1 * alpha_symmetric + bc * wcmc2 * alpha_inferior + (1-(bc*wcmc1)-(bc*wcmc2)) * 1
+
+singular_22 <- generalized_model(power_target, power_alt, alpha)
+
+fourth_block <- c(singular_17, singular_18, singular_19, singular_20, singular_21, singular_22)
+
+
+# V) Fifth block of cases (cases 23 to 28)
+
+# These cases are simply the mirrored cases of the first block 
+# Since here the target cause fails to activate its mechanism, it cannot have caused the effect (the target cause's strength is 0)
+
+fifth_block <- rep(0,6)
+
+predictions <- c(first_block, second_block, third_block, fourth_block, fifth_block)
+
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(predictions)
+
+title <- c(rep("Full generalized power model", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+
+############# Plot the predictions and save them
+
+theme_set(theme_light(base_size = 12, base_family = "Poppins"))
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle("A) Predictions of Singular Causation")+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+  scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Confidence that C = 1 caused E = 1") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=0.8)
+
+g
+
+library(svglite)
+#ggsave(file="FullModel.svg", plot=g, width=8, height=4)
+ggsave(file="FullModel.pdf", plot=g, width=8, height=4)
+```
+
+# Predictions Diagnostic Probability
+
+```{r}
+###############################################################
+
+## The causal model 
+
+
+#                {wcmc1;      {wmc1e;       {wma1e;      {wama1;
+#       bc        wcmc2}       wmc2e}        wma2e}       wama2;       ba
+#       -----> C --------> MC --------> E <-------- MA <-------- A <-----
+#            [0,1]      [0,1,2]       [0,1]      [0,1,2]       [0,1]
+
+###############################################################
+
+##### Causal strength parameters
+
+# base rates of root causes C and A
+bc <- 0.7
+ba <- bc
+
+# strength of root causes (C and A) to activate their superior mechanism path (MC1 and MA1): Telegraphs in the exp. scenario
+wcmc1 <- 0.3
+wama1 <- wcmc1
+
+# strength of root causes (C and A) to activate their inferior mechanism path (MC2 and MA2): Pony riders in the exp. scenario
+wcmc2 <- 0.3
+wama2 <- wcmc2
+
+
+# strength of mechanism components, MC=1 and MA=1, and MC=2 and MA=2
+wmc1e <- 0.9 # the strong path
+wma1e <- wmc1e
+
+wmc2e <- 0.6 # the weak path
+wma2e <- wmc2e
+
+
+##### Alpha parameter
+
+# Alpha answers the following question: if both causes are simultaneously sufficient to activate the effect, what is the probability that the alternative cause was quicker than the target cause (preempted the target cause)?
+
+# The following assumptions are made: 
+
+# - for cases in which the mechanism components of both causes are observed and the active mechanism component of the target cause is the strong and quick component (the telegraph) while the active mechanism component of the alternative cause is the weak and slow component (the pony rider) (and both happen to be sufficiently strong), then the probability that the target cause was preempted by the alternative cause is 0.1. In the mirrored case, the probability is 0.9. If both mechanism components are identical (symmetrical cases), then it is unclear who acted quicker, and alpha is assumed to take on a value of 0.5.
+
+# alpha parameter in model 
+alpha_superior <- 0.1 # for x_1t_1_1p_x
+alpha_inferior <- 0.9 # for x_1p_1_1t_x
+
+alpha_symmetric <- 0.5 # for x_u_1_u_x
+
+
+
+
+##### The 28 different test cases we need to model
+
+#############################################
+# legend: 
+# t = telegraph (superior mech component)
+# p = pony rider (inferior mech component)
+# 1 = variable present 
+# 0 = variable absent 
+# u = variable unobserved
+#############################################
+
+#     C_Mc_E_Ma_A
+
+#  1) 1_1t_1_0_1
+#  2) 1_1p_1_0_1
+#  3) 1_u_1_0_1
+#  4) u_1t_1_0_u
+#  5) u_1p_1_0_u
+#  6) u_u_1_0_u
+
+#  7) u_1t_1_u_u
+#  8) u_1p_1_u_u
+#  9) 1_1t_1_u_1
+# 10) 1_1t_1_1p_1
+# 11) u_1t_1_1p_1 
+# 12) 1_1p_1_u_1
+
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 17) 1_u_1_1p_1
+# 18) u_1p_1_1t_u
+# 19) 1_1p_1_1t_1 
+# 20) 1_u_1_1t_1
+# 21) u_u_1_1p_u
+# 22) u_u_1_1t_u
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+##################################################
+
+
+
+# I) First block of cases (cases 01 to 06):
+ 
+# In all these cases it is observed that the alternative cause failed to activate its mechanism but the effect is present
+# It therefore must have been the target cause that generated the observed effect, because the strength of the alterantive cause is 0 in this case.
+# The target cause must thus also have been present (as this is precondition of its causing the effect)
+# The predicted values thus are 1.0 for all these cases.
+
+first_block <- rep(1,6)
+
+
+
+# II) Second block of cases (cases 07 to 12)
+
+# 7) u_1t_1_u_u
+# since 1t happened, which cant happen without the target cause being present, the probability of C = 1 is 1.0 
+diag_7 <- 1.0
+
+# 8) u_1p_1_u_u
+# same logic as before, but this time 1p happened
+diag_8 <- 1.0
+
+#  9) 1_1t_1_u_1
+# c = 1, so the probability of it being there must be 1
+diag_9 <- 1.0
+
+# 10) 1_1t_1_1p_1
+# c = 1, so the probability of it being there must be 1
+diag_10 <- 1.0
+
+# 11) u_1t_1_1p_u
+# since 1t happened, c = 1 must have happened 
+diag_11 <- 1.0
+
+# 12) 1_1p_1_u_1
+# c = 1, so the probability of it being there must be 1
+diag_12 <- 1.0
+
+second_block <- c(diag_7, diag_8, diag_9, diag_10, diag_11, diag_12)
+
+
+# III) Third block of cases (cases 13 to 16)
+
+# These are the "symmetrical" cases for which the model predicts uncertainty 
+# 13) 1_u_1_u_1
+# 14) 1_1t_1_1t_1
+# 15) 1_1p_1_1p_1
+# 16) u_u_1_u_u
+
+# 13) 1_u_1_u_1
+# c = 1 happened, so the probability of it must be 1.0
+diag_13 <- 1.0
+
+# 14) 1_1t_1_1t_1
+# same as before 
+diag_14 <- 1.0
+
+# 15) 1_1p_1_1p_1
+# same as before 
+diag_15 <- 1.0
+
+# 16) u_u_1_u_u
+# we here need to apply Formula 4 (in adapted form) provided by Meder, Mayrhofer, and Waldmann (2014; "Structure Induction in Diagnostic Causal Reasoning")
+# What is the strength of C? --> it's its path strength: wcmc1 * wmc1e + bc * wcmc2 * wmc2e
+# The same is true for the alternative cause 
+
+targetstr <- wcmc1 * wmc1e + wcmc2 * wmc2e
+altstr <- ba * wama1 * wma1e + ba * wama2 * wma2e
+
+# applying formula for diag probability
+diag_16 <- (targetstr * bc + altstr * bc - targetstr * altstr * bc)/(targetstr * bc + altstr - targetstr * altstr * bc)
+
+
+third_block <- c(diag_13, diag_14, diag_15, diag_16)
+
+
+# IV) Fourth block of cases (cases 17 to 22)
+
+
+# 17) 1_u_1_1p_1
+# c = 1 happened 
+diag_17 <- 1.0
+
+# 18) u_1p_1_1t_u
+# 1p happened, which can only happen due to c = 1
+diag_18 <- 1.0
+
+# 19) 1_1p_1_1t_1 
+# c = 1 happened 
+diag_19 <- 1.0
+
+
+# 20) 1_u_1_1t_1
+# c = 1 happened 
+diag_20 <- 1.0
+
+
+# 21) u_u_1_1p_u
+# here the diag. probability needs to be calculated 
+targetstr <- wcmc1 * wmc1e + wcmc2 * wmc2e
+altstr <- wma2e
+# applying formula for diag probability
+diag_21 <- (targetstr * bc + altstr * bc - targetstr * altstr * bc)/(targetstr * bc + altstr - targetstr * altstr * bc)
+
+
+
+# 22) u_u_1_1t_u
+# here the diag. probability needs to be calculated 
+targetstr <- wcmc1 * wmc1e + wcmc2 * wmc2e
+altstr <- wma1e
+# applying formula for diag probability
+diag_22 <- (targetstr * bc + altstr * bc - targetstr * altstr * bc)/(targetstr * bc + altstr - targetstr * altstr * bc)
+
+
+fourth_block <- c(diag_17, diag_18, diag_19, diag_20, diag_21, diag_22)
+
+
+# V) Fifth block of cases (cases 23 to 28)
+
+# 23) u_0_1_u_u
+# 24) u_0_1_1p_u
+# 25) u_0_1_1t_u
+# 26) 1_0_1_u_1
+# 27) 1_0_1_1p_1
+# 28) 1_0_1_1t_1
+
+# Here we see for all cases that the target cause didn't activate its mechanism node. It thus can't have caused the effect. However, it can still have occurred. For cases 23 to 25, the probability of its presence here corresponds to its base rate. For cases 26 to 28, its presence is observed. 
+
+# 23) u_0_1_u_u
+diag_23 <- bc
+
+# 24) u_0_1_1p_u
+diag_24 <- bc
+
+# 25) u_0_1_1t_u
+diag_25 <- bc
+
+# 26) 1_0_1_u_1
+# C = 1 happened, so the probability is 1
+diag_26 <- 1.0
+
+# 27) 1_0_1_1p_1
+# same logic as before 
+diag_27 <- 1.0
+
+# 28) 1_0_1_1t_1
+# same logic as before 
+diag_28 <- 1.0
+
+fifth_block <- c(diag_23, diag_24, diag_25, diag_26, diag_27, diag_28)
+
+predictions <- c(first_block, second_block, third_block, fourth_block, fifth_block)
+
+####### Create a data frame with the predictions
+
+variable <- c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1")
+
+value <- c(predictions)
+
+title <- c(rep("Diagnostic probability", length(value)))
+
+preds <- data.frame(variable, value, title)
+
+preds$variable <- factor(preds$variable, levels = c("1_1t_1_0_1","1_1p_1_0_1","1_u_1_0_1","u_1t_1_0_u","u_1p_1_0_u","u_u_1_0_u",                               "u_1t_1_u_u","u_1p_1_u_u","1_1t_1_u_1","1_1t_1_1p_1","u_1t_1_1p_u","1_1p_1_u_1",
+              "1_u_1_u_1","1_1t_1_1t_1","1_1p_1_1p_1","u_u_1_u_u",                
+              "1_u_1_1p_1","u_1p_1_1t_u","1_1p_1_1t_1","1_u_1_1t_1","u_u_1_1p_u","u_u_1_1t_u",
+              "u_0_1_u_u", "u_0_1_1p_u", "u_0_1_1t_u", "1_0_1_u_1", "1_0_1_1p_1", "1_0_1_1t_1"))
+
+
+############# Plot the predictions and save them
+
+theme_set(theme_light(base_size = 12, base_family = "Poppins"))
+
+g <- 
+  ggplot(preds, aes(x=variable, y=value)) +
+    ggtitle("B) Diagnostic Probability")+
+    scale_y_continuous(limits = c(0, 1), expand = c(0.01, 0.01)) +
+  scale_x_discrete(labels=c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", 
+                              "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"))+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="red", geom="line",group=1, size = 1.5, 
+               linetype = "solid", alpha = 0.3)+
+    stat_summary(aes(y = value,group=1), fun.y=mean, colour="black", fill = "red", geom="point", 
+                 shape = 21, size = 3, group=1, alpha = 0.7)+
+    labs(x = NULL, y = "Probability that C = 1 given the observation") +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 18),
+      axis.text.x = element_text(angle=90, vjust = 0.5, color = "black", size = 17),
+      panel.grid = element_blank(),
+      axis.text.y = element_text(angle=90, hjust = 0.3, color = "black", size = 17)
+      #panel.grid = element_line(colour="grey", linetype="dashed")
+      )+
+    geom_vline(xintercept = 6.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 12.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 16.5, linetype="dashed", 
+                color = "grey", size=0.8)+
+    geom_vline(xintercept = 22.5, linetype="dashed", 
+                color = "grey", size=0.8)
+
+g
+
+library(svglite)
+#ggsave(file="DiagProb.svg", plot=g, width=8, height=4)
+ggsave(file="DiagProb.pdf", plot=g, width=8, height=4)
+```
+
+
+
+
+
+
+
+
+
+
+
